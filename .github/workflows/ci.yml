@@ -1,0 +1,30 @@
+# Minimal verification: this is what defines "done" in this repo.
+#
+# The CI does not enumerate the checks: it calls `pnpm run verify` and nothing
+# else. What `verify` covers is decided by package.json, so this file is not
+# touched when a check is added — and `pnpm run verify` locally is exactly what
+# runs here, not a promise that drifts.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      # The pnpm version comes from `packageManager` in package.json.
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm run verify

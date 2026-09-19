@@ -1,0 +1,85 @@
+# ASVS v5.0.0 — V16 Security Logging and Error Handling
+
+> **Requirement index for chapter V16 — Security Logging and Error Handling.**
+> Every entry carries an id ready to cite (`v5.0.0-<chapter>.<section>.<req>`),
+> the level `L` at which it becomes mandatory — an L2 project meets L1 and L2 —
+> and the official text, which is what gets cited (rule in `asvs.md` §5).
+>
+> **OWASP Application Security Verification Standard 5.0.0** (May 2025), ©
+> 2008-2025 The OWASP Foundation, licensed **CC BY-SA 4.0** —
+> <https://creativecommons.org/licenses/by-sa/4.0/>. Adapted with attribution,
+> shared alike. Source: the official CSV of tag `v5.0.0` —
+> <https://github.com/OWASP/ASVS/tree/v5.0.0>. Generated from that source; do
+> not edit by hand.
+
+## V16.1 — Security Logging Documentation
+
+- **v5.0.0-16.1.1** (L2) Verify that an inventory exists documenting the logging
+  performed at each layer of the application's technology stack, what events are
+  being logged, log formats, where that logging is stored, how it is used, how
+  access to it is controlled, and for how long logs are kept.
+
+## V16.2 — General Logging
+
+- **v5.0.0-16.2.1** (L2) Verify that each log entry includes necessary metadata
+  (such as when, where, who, what) that would allow for a detailed investigation
+  of the timeline when an event happens.
+- **v5.0.0-16.2.2** (L2) Verify that time sources for all logging components are
+  synchronized, and that timestamps in security event metadata use UTC or
+  include an explicit time zone offset. UTC is recommended to ensure consistency
+  across distributed systems and to prevent confusion during daylight saving
+  time transitions.
+- **v5.0.0-16.2.3** (L2) Verify that the application only stores or broadcasts
+  logs to the files and services that are documented in the log inventory.
+- **v5.0.0-16.2.4** (L2) Verify that logs can be read and correlated by the log
+  processor that is in use, preferably by using a common logging format.
+- **v5.0.0-16.2.5** (L2) Verify that when logging sensitive data, the
+  application enforces logging based on the data's protection level. For
+  example, it may not be allowed to log certain data, such as credentials or
+  payment details. Other data, such as session tokens, may only be logged by
+  being hashed or masked, either in full or partially.
+
+## V16.3 — Security Events
+
+- **v5.0.0-16.3.1** (L2) Verify that all authentication operations are logged,
+  including successful and unsuccessful attempts. Additional metadata, such as
+  the type of authentication or factors used, should also be collected.
+- **v5.0.0-16.3.2** (L2) Verify that failed authorization attempts are logged.
+  For L3, this must include logging all authorization decisions, including
+  logging when sensitive data is accessed (without logging the sensitive data
+  itself).
+- **v5.0.0-16.3.3** (L2) Verify that the application logs the security events
+  that are defined in the documentation and also logs attempts to bypass the
+  security controls, such as input validation, business logic, and
+  anti-automation.
+- **v5.0.0-16.3.4** (L2) Verify that the application logs unexpected errors and
+  security control failures such as backend TLS failures.
+
+## V16.4 — Log Protection
+
+- **v5.0.0-16.4.1** (L2) Verify that all logging components appropriately encode
+  data to prevent log injection.
+- **v5.0.0-16.4.2** (L2) Verify that logs are protected from unauthorized access
+  and cannot be modified.
+- **v5.0.0-16.4.3** (L2) Verify that logs are securely transmitted to a
+  logically separate system for analysis, detection, alerting, and escalation.
+  The aim is to ensure that if the application is breached, the logs are not
+  compromised.
+
+## V16.5 — Error Handling
+
+- **v5.0.0-16.5.1** (L2) Verify that a generic message is returned to the
+  consumer when an unexpected or security-sensitive error occurs, ensuring no
+  exposure of sensitive internal system data such as stack traces, queries,
+  secret keys, and tokens.
+- **v5.0.0-16.5.2** (L2) Verify that the application continues to operate
+  securely when external resource access fails, for example, by using patterns
+  such as circuit breakers or graceful degradation.
+- **v5.0.0-16.5.3** (L2) Verify that the application fails gracefully and
+  securely, including when an exception occurs, preventing fail-open conditions
+  such as processing a transaction despite errors resulting from validation
+  logic.
+- **v5.0.0-16.5.4** (L3) Verify that a "last resort" error handler is defined
+  which will catch all unhandled exceptions. This is both to avoid losing error
+  details that must go to log files and to ensure that an error does not take
+  down the entire application process, leading to a loss of availability.

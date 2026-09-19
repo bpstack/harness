@@ -1,0 +1,33 @@
+{
+  "name": "harness",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "A reusable starting harness for new projects: rules, templates, agents and commands.",
+  "license": "MIT",
+  "engines": {
+    "node": "24.x"
+  },
+  "packageManager": "pnpm@10.34.1",
+  "scripts": {
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "leaks": "node bin/leak-guard.mjs",
+    "test": "node --test \"tests/**/*.test.mjs\"",
+    "verify": "pnpm run format:check && pnpm run leaks && pnpm run marks && pnpm run vocabulary && pnpm run links && pnpm run asvs:age && pnpm run test",
+    "propagate": "node bin/propagate.mjs",
+    "init": "node bin/init-project.mjs",
+    "sync:global": "node bin/sync-global.mjs",
+    "marks": "node bin/marks-guard.mjs",
+    "links": "node bin/check-links.mjs",
+    "sync:check": "node bin/sync-global.mjs --check",
+    "asvs:check": "node bin/asvs-update.mjs",
+    "asvs:update": "node bin/asvs-update.mjs --apply",
+    "asvs:age": "node bin/asvs-age.mjs",
+    "uninstall": "node bin/uninstall.mjs",
+    "vocabulary": "node bin/vocabulary-guard.mjs"
+  },
+  "devDependencies": {
+    "prettier": "3.9.6"
+  }
+}

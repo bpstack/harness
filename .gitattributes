@@ -1,0 +1,11 @@
+# The repo always stores LF, and checkout keeps LF on Windows too. This harness
+# is developed on Win11 and Ubuntu: without this, a commit from Windows can
+# rewrite files to CRLF and pollute every diff. `.nvmrc` is the critical case —
+# with CRLF, `node-version-file` in the workflows and the fnm/nvm auto-switch
+# both read "24\r".
+* text=auto eol=lf
+
+# Windows scripts: they need CRLF to run correctly.
+*.ps1 text eol=crlf
+*.bat text eol=crlf
+*.cmd text eol=crlf

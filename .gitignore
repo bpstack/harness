@@ -1,0 +1,9 @@
+node_modules/
+
+# The private repo names the leak guard reads. Never committed: this is the
+# public repo, and the list is exactly what must not be published.
+.private-names
+
+info.md
+_archive
+.local

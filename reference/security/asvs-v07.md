@@ -1,0 +1,97 @@
+# ASVS v5.0.0 — V7 Session Management
+
+> **Requirement index for chapter V7 — Session Management.** Every entry carries
+> an id ready to cite (`v5.0.0-<chapter>.<section>.<req>`), the level `L` at
+> which it becomes mandatory — an L2 project meets L1 and L2 — and the official
+> text, which is what gets cited (rule in `asvs.md` §5).
+>
+> **OWASP Application Security Verification Standard 5.0.0** (May 2025), ©
+> 2008-2025 The OWASP Foundation, licensed **CC BY-SA 4.0** —
+> <https://creativecommons.org/licenses/by-sa/4.0/>. Adapted with attribution,
+> shared alike. Source: the official CSV of tag `v5.0.0` —
+> <https://github.com/OWASP/ASVS/tree/v5.0.0>. Generated from that source; do
+> not edit by hand.
+
+## V7.1 — Session Management Documentation
+
+- **v5.0.0-7.1.1** (L2) Verify that the user's session inactivity timeout and
+  absolute maximum session lifetime are documented, are appropriate in
+  combination with other controls, and that the documentation includes
+  justification for any deviations from NIST SP 800-63B re-authentication
+  requirements.
+- **v5.0.0-7.1.2** (L2) Verify that the documentation defines how many
+  concurrent (parallel) sessions are allowed for one account as well as the
+  intended behaviors and actions to be taken when the maximum number of active
+  sessions is reached.
+- **v5.0.0-7.1.3** (L2) Verify that all systems that create and manage user
+  sessions as part of a federated identity management ecosystem (such as SSO
+  systems) are documented along with controls to coordinate session lifetimes,
+  termination, and any other conditions that require re-authentication.
+
+## V7.2 — Fundamental Session Management Security
+
+- **v5.0.0-7.2.1** (L1) Verify that the application performs all session token
+  verification using a trusted, backend service.
+- **v5.0.0-7.2.2** (L1) Verify that the application uses either self-contained
+  or reference tokens that are dynamically generated for session management,
+  i.e. not using static API secrets and keys.
+- **v5.0.0-7.2.3** (L1) Verify that if reference tokens are used to represent
+  user sessions, they are unique and generated using a cryptographically secure
+  pseudo-random number generator (CSPRNG) and possess at least 128 bits of
+  entropy.
+- **v5.0.0-7.2.4** (L1) Verify that the application generates a new session
+  token on user authentication, including re-authentication, and terminates the
+  current session token.
+
+## V7.3 — Session Timeout
+
+- **v5.0.0-7.3.1** (L2) Verify that there is an inactivity timeout such that
+  re-authentication is enforced according to risk analysis and documented
+  security decisions.
+- **v5.0.0-7.3.2** (L2) Verify that there is an absolute maximum session
+  lifetime such that re-authentication is enforced according to risk analysis
+  and documented security decisions.
+
+## V7.4 — Session Termination
+
+- **v5.0.0-7.4.1** (L1) Verify that when session termination is triggered (such
+  as logout or expiration), the application disallows any further use of the
+  session. For reference tokens or stateful sessions, this means invalidating
+  the session data at the application backend. Applications using self-contained
+  tokens will need a solution such as maintaining a list of terminated tokens,
+  disallowing tokens produced before a per-user date and time or rotating a
+  per-user signing key.
+- **v5.0.0-7.4.2** (L1) Verify that the application terminates all active
+  sessions when a user account is disabled or deleted (such as an employee
+  leaving the company).
+- **v5.0.0-7.4.3** (L2) Verify that the application gives the option to
+  terminate all other active sessions after a successful change or removal of
+  any authentication factor (including password change via reset or recovery
+  and, if present, an MFA settings update).
+- **v5.0.0-7.4.4** (L2) Verify that all pages that require authentication have
+  easy and visible access to logout functionality.
+- **v5.0.0-7.4.5** (L2) Verify that application administrators are able to
+  terminate active sessions for an individual user or for all users.
+
+## V7.5 — Defenses Against Session Abuse
+
+- **v5.0.0-7.5.1** (L2) Verify that the application requires full
+  re-authentication before allowing modifications to sensitive account
+  attributes which may affect authentication such as email address, phone
+  number, MFA configuration, or other information used in account recovery.
+- **v5.0.0-7.5.2** (L2) Verify that users are able to view and (having
+  authenticated again with at least one factor) terminate any or all currently
+  active sessions.
+- **v5.0.0-7.5.3** (L3) Verify that the application requires further
+  authentication with at least one factor or secondary verification before
+  performing highly sensitive transactions or operations.
+
+## V7.6 — Federated Re-authentication
+
+- **v5.0.0-7.6.1** (L2) Verify that session lifetime and termination between
+  Relying Parties (RPs) and Identity Providers (IdPs) behave as documented,
+  requiring re-authentication as necessary such as when the maximum time between
+  IdP authentication events is reached.
+- **v5.0.0-7.6.2** (L2) Verify that creation of a session requires either the
+  user's consent or an explicit action, preventing the creation of new
+  application sessions without user interaction.
