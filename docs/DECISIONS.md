@@ -639,6 +639,34 @@
 - **Rejected:** a separate `NOTICE` file — a second file nobody opens does not
   inform anyone.
 
+## ADR-033 — A check that time alone can redden runs on a schedule, not on every change
+
+- **Status:** ✅ accepted
+- **Date:** 2026-09-20
+- **Decision:** `asvs:age` leaves `verify` and moves, with `asvs:check`, to a
+  scheduled workflow (`.github/workflows/asvs.yml`) that runs monthly and on
+  demand. This is the one exception to ADR-009: the CI workflow still invokes
+  `pnpm run verify` and nothing else, and no second list of checks is enumerated
+  anywhere — the scheduled workflow asks a different question, about the
+  repository rather than about a change. The test for belonging in `verify` is
+  whether editing the repo can turn the check green.
+- **Reason:** `asvs:age` cuts when the stamped check date is over 180 days old,
+  so it reddens because time passed, not because anything changed. In a public
+  repository that lands on a contributor's pull request, for a reason they did
+  not cause and cannot fix: clearing it needs the network and a regenerated
+  sheet, which is the maintainer's work. A red nobody can fix is a red everyone
+  learns to ignore, which is the harm ADR-009 exists to prevent. The rule is
+  already written in `templates/ci.yml`, next to `pnpm audit`, and had simply
+  never been applied here.
+- **Consequence, accepted:** GitHub disables a scheduled workflow after 60 days
+  without activity in a public repository. If this one stops, nothing announces
+  it; `workflow_dispatch` and the two commands run locally are the recovery.
+  `asvs:check` also exits 0 when the tag's CSV changed without a version bump,
+  so that case is printed and not signalled.
+- **Rejected:** leaving it in `verify` and accepting the red; making it warn
+  instead of cut, which contradicts guards that fail rather than warn; deleting
+  `asvs:age`, which is the only one of the two that needs no network.
+
 <!-- Guidance, copied from the harness's DECISIONS template when this file
      was created. **Nothing rewrites it**: it is not a managed block, so
      edit it freely, or delete it once the habit is yours.

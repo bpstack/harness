@@ -1,0 +1,46 @@
+# The checks that can turn red without this repo changing. They are kept out of
+# `verify` for the reason `templates/ci.yml` already gives for `pnpm audit`: a
+# red that editing the repo cannot fix is a red everyone learns to ignore, and
+# `verify` guards every pull request, including one from someone who has never
+# seen this file.
+#
+# `asvs:check` needs the network, which is the second reason it cannot sit in
+# the per-change gate.
+#
+# ⚠️ GitHub disables a scheduled workflow after 60 days without activity in a
+# public repo. If this stops running, nothing says so: `workflow_dispatch` and
+# the same two commands locally are the way back.
+name: ASVS
+
+on:
+  schedule:
+    # The first of the month, 06:00 UTC. The cap is 180 days, so monthly gives
+    # six chances to catch a stale sheet before it can cut.
+    - cron: '0 6 1 * *'
+  workflow_dispatch:
+
+jobs:
+  asvs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # Offline: is the stamped check date past the cap?
+      - run: pnpm run asvs:age
+
+      # Network: does the tag's CSV still match the sheet, and has OWASP
+      # published a newer version? It exits 1 only on a newer tag.
+      #
+      # `always()`: a stale date must not hide the answer to the other
+      # question. Both run, both report.
+      - if: always()
+        run: pnpm run asvs:check

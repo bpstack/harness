@@ -14,7 +14,7 @@
     "format:check": "prettier --check .",
     "leaks": "node bin/leak-guard.mjs",
     "test": "node --test \"tests/**/*.test.mjs\"",
-    "verify": "pnpm run format:check && pnpm run leaks && pnpm run marks && pnpm run vocabulary && pnpm run links && pnpm run asvs:age && pnpm run test",
+    "verify": "pnpm run format:check && pnpm run leaks && pnpm run marks && pnpm run vocabulary && pnpm run links && pnpm run test",
     "propagate": "node bin/propagate.mjs",
     "init": "node bin/init-project.mjs",
     "sync:global": "node bin/sync-global.mjs",

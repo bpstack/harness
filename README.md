@@ -281,8 +281,11 @@ the sheet where the agent reads it; if it is not there, the agent says so and
 marks every finding as unversioned rather than inventing an id.
 
 Keeping the sheet current is the job of `pnpm run asvs:check` and `asvs:update`.
-How they decide, and why a newer OWASP version is reported but never applied on
-its own, is in
+Both run monthly from
+[`.github/workflows/asvs.yml`](./.github/workflows/asvs.yml), and deliberately
+not from `verify`: a check that time alone can turn red does not belong on
+someone else’s pull request. How they decide, and why a newer OWASP version is
+reported but never applied on its own, is in
 [`reference/security/source/README.md`](./reference/security/source/README.md).
 
 ## Installing the agent CLIs
