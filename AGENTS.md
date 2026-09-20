@@ -14,18 +14,24 @@ This project's own, and first on purpose: the highest-return section, and the
 one almost everyone buries halfway down.
 
 ```bash
-pnpm install --frozen-lockfile    # e.g. pnpm install --frozen-lockfile
-pnpm run asvs:check              # is the ASVS sheet still current?
+pnpm install --frozen-lockfile   # the lockfile's exact versions, or fail
+pnpm run init <repo>             # write that repo's first AGENTS.md
+pnpm run propagate <repo>...     # refresh layer 1 where it is already installed
 pnpm run sync:global --dest DIR  # deploy agents, commands, reference
-pnpm run uninstall <repo>        # take the blocks out again, dry-run first
+pnpm run uninstall <repo>        # take the blocks out again
+pnpm run asvs:check              # is the ASVS sheet still current? needs the network
 pnpm run asvs:age                # is the ASVS check stale? cuts at 180 days
-pnpm run test   # e.g. pnpm run test
-pnpm run verify # the same thing CI runs
+pnpm run test                    # the tests on their own
+pnpm run verify                  # the same thing CI runs
 ```
 
-One package, one root. Every command runs from here. ⚠️ **`sync:global` demands
-`--dest`** and has no default: writing into the real configuration would put two
-sources behind one destination, and the last to run would win in silence.
+One package, one root. Every command runs from here, and the four that write
+somewhere else — `init`, `propagate`, `sync:global`, `uninstall` — are **dry run
+by default** and write only with `--apply`.
+
+⚠️ **`sync:global` demands `--dest`** and has no default: writing into the real
+configuration would put two sources behind one destination, and the last to run
+would win in silence.
 
 ## Before doing anything
 

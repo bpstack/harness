@@ -64,8 +64,8 @@ tripping over them:
 
 ## Using it
 
-The two commands that do the work. Both are **dry run by default**: they print
-what they would do, and write only with `--apply`.
+The commands that do the work. All are **dry run by default**: they print what
+they would do, and write only with `--apply`.
 
 ### `init-project` — a project's first `AGENTS.md`
 
@@ -89,6 +89,26 @@ a pinned Node version, `packageManager`, a `verify` script, a CI workflow and
 the rest: each one is named with the consequence of its absence, and left for
 the owner. A generator that installs and configures on its own is exactly what
 rule 4 forbids.
+
+### `propagate` — refresh layer 1 where it is already installed
+
+```bash
+pnpm run propagate ../a-project ../another   # what would change
+pnpm run propagate --apply ../a-project
+```
+
+It takes as many repos as you hand it. `init-project` writes the file the first
+time; this is what keeps it current afterwards, and a repo whose layer 1 already
+matches is reported as `already current` rather than rewritten.
+
+🔴 **Only what sits between the marks changes**, and that is checked on the real
+file immediately before writing, not only in the tests. A promise that lives
+only in a test does not protect against the case the test never imagined.
+
+📌 **It also reports the rule citations a project got wrong.** Layer 1's numbers
+shift when a rule leaves, so prose that cites "rule 13" can end up naming
+something else entirely. It says so and **never rewrites**: the line is outside
+the marks, and that makes it the project's.
 
 ### `sync-global` — the agents, commands and reference material
 
