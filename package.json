@@ -5,6 +5,11 @@
   "type": "module",
   "description": "A reusable starting harness for new projects: rules, templates, agents and commands.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bpstack/harness.git"
+  },
+  "author": "razyd",
   "engines": {
     "node": "24.x"
   },

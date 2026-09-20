@@ -54,13 +54,13 @@ tripping over them:
 
 ## What is here
 
-| Path                                                       | What it is                                                                                 |
-| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| [`layer1.md`](./layer1.md)                                 | The invariants copied into every project                                                   |
-| [`templates/`](./templates/README.md)                      | The moulds each project document is written from, including [`ci.yml`](./templates/ci.yml) |
-| [`reference/`](./reference/)                               | What agents open on demand: [`traps.md`](./reference/traps.md), the ASVS sheet             |
-| [`agents/`](./agents/) · [`commands/`](./commands/)        | The global harness, in a neutral format                                                    |
-| [`bin/`](./bin/) · [`lib/`](./lib/) · [`tests/`](./tests/) | The generator, the propagator, the guards, their libraries and their tests                 |
+| Path                                                       | What it is                                                                                                                   |
+| ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| [`layer1.md`](./layer1.md)                                 | The invariants copied into every project                                                                                     |
+| [`templates/`](./templates/README.md)                      | The moulds each project document is written from, including [`ci.yml`](./templates/ci.yml)                                   |
+| [`reference/`](./reference/)                               | What agents open on demand: [`traps.md`](./reference/traps.md), the ASVS sheet                                               |
+| [`agents/`](./agents/) · [`commands/`](./commands/)        | The global harness, in a neutral format                                                                                      |
+| [`bin/`](./bin/) · [`lib/`](./lib/) · [`tests/`](./tests/) | The commands and the guards: `bin/` holds the effects, `lib/` the decisions, so what decides is tested without touching disk |
 
 ## Using it
 
