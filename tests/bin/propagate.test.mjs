@@ -138,7 +138,7 @@ test('🔴 a grafted repo is told about the files the layers name and nothing wr
 
   const out = call(CLI, ['--apply', dir]);
   assert.match(out, /the layers name what nothing here creates/);
-  assert.match(out, /· CLAUDE\.md — the pointer to `AGENTS\.md`/);
+  assert.match(out, /· CLAUDE\.md — the `@AGENTS\.md` import/);
   assert.match(out, /· docs\/DECISIONS\.md — rule 13/);
   // Reported, never created: adding files to someone else's tree is not this
   // command's business.

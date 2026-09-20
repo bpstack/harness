@@ -126,8 +126,9 @@ harness mark on every deployed agent and command.
 **In a project**, the marked blocks leave the `AGENTS.md` and everything outside
 them stays byte for byte — the same promise, read backwards. **The file itself
 is never deleted**: layer 3 was written by a person, and no generator can put it
-back. **`CLAUDE.md` is never deleted either**: it is one line, and it is what
-lets Claude Code keep reading what remains in `AGENTS.md`.
+back. **`CLAUDE.md` is never deleted either**: it is one line, and removing it
+would change how Claude Code loads what remains in `AGENTS.md` — a decision
+belonging to whoever owns the repo, not to an uninstaller.
 
 **With `--global`**, the agents and commands that carry the harness mark, the
 install seal, and — only when the seal is there — the files under

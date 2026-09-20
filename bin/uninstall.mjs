@@ -237,7 +237,8 @@ export function renderProject(plans, { apply }) {
     '',
     '🔴 AGENTS.md and CLAUDE.md are never deleted: only the layer 1 block',
     '   leaves AGENTS.md. What remains was written by a person, and CLAUDE.md',
-    '   is what lets Claude Code keep reading it.',
+    '   is what keeps it reaching every session — deleting it would also',
+    '   change how Claude Code loads AGENTS.md, which is not ours to decide.',
   );
   if (!apply) {
     lines.push('', 'Dry run. Nothing removed. Add --apply to remove.');

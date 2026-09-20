@@ -159,8 +159,10 @@ test('a repo with its foundations in place is not nagged', () => {
 // the file is on this machine, so nothing breaks and nobody suspects, and on
 // the next clone it is simply absent with no error either. Measured on a real
 // repo on 2026-09-08 — the generator reported writing `CLAUDE.md` and `git
-// status` never listed it, and `CLAUDE.md` is the one file without which
-// Claude Code reads none of the harness.
+// status` never listed it. An absent `CLAUDE.md` is now the one case Claude
+// Code's native `AGENTS.md` reading covers (v2.1.277+), but `docs/DECISIONS.md`
+// under the same pattern has no fallback, and neither has a session that
+// cannot read `AGENTS.md` directly.
 test('🔴 a file git ignores is named before it is written', () => {
   const dir = repo();
   writeFileSync(join(dir, '.gitignore'), 'CLAUDE.md\n');

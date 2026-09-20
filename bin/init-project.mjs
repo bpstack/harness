@@ -115,8 +115,9 @@ function layer1Body() {
 // The file is on this machine, so nothing here breaks and nobody suspects; on
 // the next clone it is simply absent, with no error either. Measured on a real
 // repo on 2026-09-08: the generator reported writing `CLAUDE.md` and `git
-// status` never listed it — and `CLAUDE.md` is the one file without which
-// Claude Code reads none of the harness.
+// status` never listed it. An absent `CLAUDE.md` is the one case the native
+// `AGENTS.md` reading covers (v2.1.277+); `docs/DECISIONS.md` under an ignore
+// pattern has no such fallback, and neither has a session that cannot use it.
 //
 // 🔴 `-v` prints negation patterns too, **and returns exit 0 with them**. A
 // file re-included by `!/docs/DECISIONS.md` under a `/docs/*` was therefore
@@ -202,9 +203,11 @@ export function pointerWarnings({ text, isSymlink, versioned }) {
   }
   if (text !== null && !isPointer(text)) {
     out.push(
-      '`CLAUDE.md` has no `@AGENTS.md` line, so **`AGENTS.md` does not ' +
-        'reach a Claude Code session at all** — everything layer 1 writes ' +
-        'there is invisible to the tool it was written for. **The fix is one ' +
+      '`CLAUDE.md` exists and has no `@AGENTS.md` line, so **`AGENTS.md` does ' +
+        'not reach a Claude Code session at all** — a `CLAUDE.md` in the ' +
+        'working directory or above it switches off the native reading that ' +
+        'v2.1.277 added, and this file is that `CLAUDE.md`. Everything layer ' +
+        '1 writes is invisible to the tool it was written for. **The fix is one ' +
         'line at the top of `CLAUDE.md`, and it moves nothing**: content ' +
         'specific to Claude Code may stay below it and the file is still a ' +
         'pointer. Offer that first and on its own. Moving the rules out is a ' +
@@ -466,18 +469,25 @@ Evidence: ${manager.evidence}. Nothing was written.`,
     (layerRemoves ? UPDATE : SKIP);
   const layerMigrates = layerResults.some((r) => r.migrates);
 
-  // 🔴 Without the pointer the whole file is invisible to Claude Code, which
-  // does not read `AGENTS.md`. Measured on 2026-09-06: a folder holding only
-  // an `AGENTS.md` loads none of it, and the same content in a `CLAUDE.md`
-  // loads. Writing one without the other produces a project that looks
-  // harnessed and is not — the worst of the three outcomes.
+  // The pointer is written because it is the only shape that works in every
+  // session, not because `AGENTS.md` is unreadable without it.
+  //
+  // ⚠️ The measurement this used to cite — 2026-09-06, a folder holding only an
+  // `AGENTS.md` loading none of it — **was overtaken by the tool**. Re-measured
+  // on 2026-09-21 with Claude Code v2.1.278: the same folder answers from its
+  // `AGENTS.md`. Native reading arrived in v2.1.277, and it applies only where
+  // no `CLAUDE.md` or `CLAUDE.local.md` sits in the working directory or above
+  // it. See ADR-035; a dated measurement is not a permanent fact.
   const pointer = join(dir, 'CLAUDE.md');
   const decisions = join(dir, 'docs', 'DECISIONS.md');
   const pointerNeeded = !existsSync(pointer);
   if (pointerNeeded) {
     notices.push(
-      'writing `CLAUDE.md` too: it is one line importing `AGENTS.md`, and ' +
-        'without it Claude Code reads none of this.',
+      'writing `CLAUDE.md` too: one line importing `AGENTS.md`. Claude Code ' +
+        'reads `AGENTS.md` on its own from v2.1.277, so this is insurance, ' +
+        'not the only way in: it is what carries the file in the sessions ' +
+        'that cannot (an older version, Bedrock, telemetry off, hooks ' +
+        'disabled), and what makes the load checkable in `/context`.',
     );
   }
 

@@ -229,9 +229,11 @@ if (process.argv[1] && process.argv[1].endsWith('propagate.mjs')) {
     const gone = [
       !existsSync(join(dir, 'CLAUDE.md')) && [
         'CLAUDE.md',
-        'the pointer to `AGENTS.md`, and **without it Claude Code reads none of what was just ' +
-          'written** — the repo looks harnessed and is invisible to the tool ' +
-          'it was harnessed for',
+        'the `@AGENTS.md` import. Claude Code reads `AGENTS.md` on its own ' +
+          'from **v2.1.277**, so this is no longer all-or-nothing — but a ' +
+          'session that cannot (an older version, Bedrock, telemetry off, ' +
+          'hooks disabled) then reads none of what was just written, and a ' +
+          'natively read `AGENTS.md` is not listed in `/context` either',
       ],
       !existsSync(join(dir, 'docs', 'DECISIONS.md')) && [
         'docs/DECISIONS.md',
