@@ -67,15 +67,20 @@ Two steps, and only two, to get running.
 ### 1. Install the harness — once per machine, with pnpm
 
 ```bash
-pnpm run sync:global --dest ~/.claude              # what it would write
-pnpm run sync:global --dest ~/.claude --apply
+pnpm run sync:global --dest ~              # what it would write
+pnpm run sync:global --dest ~ --apply
 ```
 
-Writes the agents, commands and reference material where each tool reads them,
-and leaves a seal at `.claude/harness/install.json` pointing back at this clone
-— that seal is what `/init-project` uses to find it. opencode is written only
-when asked or already installed — see
-[Installing the agent CLIs](#installing-the-agent-clis).
+⚠️ **`--dest` is your home, not `~/.claude`.** The paths below are written
+**under** it — `.claude/agents/`, `.claude/commands/`, `.claude/reference/` and
+the seal at `.claude/harness/install.json`, which is what `/init-project` reads
+to find this clone. Pointing it at `~/.claude` builds `~/.claude/.claude/` and
+the dry run says `new` where it should say `changed`. _Measured on 2026-09-21,
+by getting it wrong: 37 new against 5 changed._
+
+Both harnesses are written from the same run — opencode wherever
+`~/.config/opencode` already exists, and with `--opencode` where it does not
+yet. See [Installing the agent CLIs](#installing-the-agent-clis).
 
 ### 2. Start a project — once per repo, with `/init-project`
 
