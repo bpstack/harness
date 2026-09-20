@@ -329,33 +329,44 @@ legitimate answer here too.
 ## Step 4 — Ask the owner: the security level, its areas, and where the model goes wrong
 
 One conversation, **one question at a time, and wait for each answer**. **If
-your tool can ask with options, use it** for questions 1 to 3 and for the areas:
-the options are the answers listed with each one. Question 4 and the last one
-are typed in. What comes out is written **outside the marks**, in layer 2. The
-`security` agent reads it from there, so the shape below is not a suggestion.
+your tool can ask with options, use it** for questions 1 and 2 and for the
+areas: the options are the answers listed with each one, and question 1 takes
+several at once. Question 3 and the last one are typed in. What comes out is
+written **outside the marks**, in layer 2. The `security` agent reads it from
+there, so the shape below is not a suggestion.
 
 🔴 **If `AGENTS.md` already has a `## Security` section in this shape, show it
 and ask whether it still holds** — do not run the questions again. If it states
 a level in any other shape, run them: a level with no premise written next to it
 cannot be checked.
 
-### The level: four questions
+### The level: two questions set it
 
-1. **Are there user accounts?** (login, sessions, identity) — yes → **at least
-   L2**.
-2. **If what you store leaked or got corrupted, who would it harm?** Nobody, or
-   only you → L1 · your users (personal data, their content, their business) →
-   **L2** · third parties, seriously (money, health, identity, infrastructure) →
-   **L3**. A form **without** login that collects personal data is already L2.
-3. **Is there an external obligation to meet?** (regulation, contract, audit,
-   card payments, regulated sector) — yes → **L3**.
-4. **Is anything planned that would change these answers?** (accounts, payments,
+1. **Which of these does the project have?** — all that apply. It is **looked
+   at, not judged**: each one is a fact about the repo.
+   - a login, or user accounts
+   - personal data, or money
+   - **its own backend** — a server of yours, not a static site behind a CDN
+
+   **None of them → L1. Any of them → L2.**
+
+   🔴 **These are the same three signals `security` derives from when no level
+   is declared.** Asked here they are answered by the owner instead of guessed,
+   and the two paths cannot then disagree about the same project.
+
+2. **Could a leak harm third parties seriously** (money, health, identity,
+   infrastructure), **or is there an external obligation to meet** (regulation,
+   contract, audit, card payments, regulated sector)? — either one → **L3**.
+
+**The level is the higher of the two, starting from L1. When in doubt, L2.** A
+wrong L1 is worse than none: the agent opens the wrong indexes and returns a
+green worth nothing.
+
+### And one that does not set it
+
+3. **Is anything planned that would change these answers?** (accounts, payments,
    personal data, a client demanding an audit) — **it does not raise the
    level**; it becomes the `Re-estimate when:` line.
-
-**The level is the highest that questions 1-3 give, starting from L1. When in
-doubt, L2.** A wrong L1 is worse than none: the agent opens the wrong indexes
-and returns a green worth nothing.
 
 ### The areas, only at L2 or L3
 
@@ -369,8 +380,8 @@ list: the `security` agent opens no index there.
 ```markdown
 ## Security
 
-**L2** — estimated on <date>: <the answers to 1-3, in one line>. **Re-estimate
-when:** <the answer to 4>.
+**L2** — estimated on <date>: <the answers to 1 and 2, in one line>.
+**Re-estimate when:** <the answer to 3>.
 
 **Areas:**
 
@@ -378,7 +389,7 @@ when:** <the answer to 4>.
 - API → `src/api/`
 ```
 
-With no answer to question 4, leave the `Re-estimate when:` line out.
+With no answer to question 3, leave the `Re-estimate when:` line out.
 
 🔴 **The fixed words stay in English, whatever language you write in**:
 `## Security`, `estimated on`, `Re-estimate when:`, `Areas:` and the area names.
