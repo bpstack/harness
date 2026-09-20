@@ -143,10 +143,17 @@ depending on which harness opened it.
 | rules live in `CLAUDE.md`   | a migration: content moves, and that is the owner's to approve |
 
 🔴 **Never bundle them.** The import is not a step of the migration and does not
-wait for it: without that line, **`AGENTS.md` does not reach a Claude Code
-session at all** — everything layer 1 puts there, the security section included,
-is invisible to the tool it was written for. Offer the line on its own, first,
-and say what it costs, which is nothing.
+wait for it: **a `CLAUDE.md` sitting there suppresses `AGENTS.md`**, so without
+the import line everything layer 1 wrote — the security section included — is
+invisible to the tool it was written for.
+
+⚠️ **And the mechanism is the opposite of what it looks like.** Claude Code
+reads `AGENTS.md` on its own from **v2.1.277**, but **only where no `CLAUDE.md`
+or `CLAUDE.local.md` sits in the working directory or above it**. So the file
+this harness writes is precisely what turns that off, and the import is what
+puts it back. A repo with no `CLAUDE.md` at all is read fine on a current
+version; one with an importless `CLAUDE.md` is not. Offer the line on its own,
+first, and say what it costs, which is nothing.
 
 **A short `CLAUDE.md` is not automatically a pointer.** Only `@AGENTS.md`
 imports; a sentence saying "read AGENTS.md first" merely asks the agent to
@@ -273,8 +280,16 @@ line. **Act on it before `--apply`.**
 🔴 **This is the quietest of the failures.** The file lands here, so nothing
 breaks and nobody suspects; on the next clone it is simply absent, with no error
 on either side. _Measured on a real repo on 2026-09-08: the generator reported
-writing `CLAUDE.md` and `git status` never listed it — and `CLAUDE.md` is the
-one file without which Claude Code reads none of the harness._
+writing `CLAUDE.md` and `git status` never listed it._
+
+⚠️ **What an absent `CLAUDE.md` costs has shrunk, and not to zero.** Claude Code
+reads `AGENTS.md` on its own from **v2.1.277**, so a clone that lacks
+`CLAUDE.md` entirely is read correctly on a current version — an absent file is
+the one case the native path covers. What it does not cover is the sessions that
+cannot use it: a version below that, a provider that fetches no feature flags
+such as Bedrock, telemetry off, hooks disabled. There the clone reads no harness
+at all, and nothing says so. `docs/DECISIONS.md` under an ignore pattern has no
+such fallback.
 
 **Ask the owner, with the exact line in front of them:**
 

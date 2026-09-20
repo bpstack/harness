@@ -138,14 +138,14 @@ reviewed.
 
 ## Step 5 — The two files the layers name and this command never writes
 
-🔴 **A repo can be harnessed and still be invisible.** The layers you just wrote
-cite two files that this command never creates — only `/init-project` does. So a
-project that was only ever propagated can lack both.
+🔴 **A repo can be harnessed and still be half-installed.** The layers you just
+wrote cite two files that this command never creates — only `/init-project`
+does. So a project that was only ever propagated can lack both.
 
-| Missing             | Why it matters                                                                                                                                         |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `CLAUDE.md`         | the pointer to `AGENTS.md`. **Without it Claude Code reads none of this** — the repo looks harnessed and is invisible to the tool it was harnessed for |
-| `docs/DECISIONS.md` | rule 13, which the layers point at. A rule citing a file that does not exist teaches that the citations are decoration                                 |
+| Missing             | Why it matters                                                                                                                                                                                                                                                                           |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `CLAUDE.md`         | the `@AGENTS.md` import. Claude Code reads `AGENTS.md` on its own from **v2.1.277**, so this is no longer all-or-nothing — but the sessions that cannot (older versions, Bedrock, telemetry off, hooks disabled) then read nothing, and a natively read file is not listed in `/context` |
+| `docs/DECISIONS.md` | rule 13, which the layers point at. A rule citing a file that does not exist teaches that the citations are decoration                                                                                                                                                                   |
 
 The script names them if they are absent. **Offer them; do not write them.**
 Updating a block the repo already had is one thing — adding files to someone
