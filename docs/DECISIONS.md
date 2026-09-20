@@ -438,6 +438,9 @@
 ## ADR-023 — `CLAUDE.md` is a pointer by its `@AGENTS.md` line
 
 - **Status:** ✅ accepted
+- **Revised by:** ADR-035 — the decision stands, its reason was too broad.
+  Claude Code now reads `AGENTS.md` on its own; what makes the import necessary
+  is the `CLAUDE.md` this harness writes.
 - **Date:** 2026-09-17
 - **Decision:** A `CLAUDE.md` is a pointer when it contains the line
   `@AGENTS.md`. Content that is specific to Claude Code may stay below that
@@ -688,6 +691,49 @@
   is the same bet that just failed and the match threshold is not ours to know;
   a `NOTICE` file, still, for the reason ADR-032 gave — the name says nothing
   about what is inside, while `LICENSE-EXCEPTIONS.md` is read from its title.
+
+## ADR-035 — The `@AGENTS.md` import stays, and it is the `CLAUDE.md` beside it that makes it necessary
+
+- **Status:** ✅ accepted
+- **Date:** 2026-09-21
+- **Revises:** ADR-023 — the decision is unchanged; its reason no longer holds
+  as written.
+- **Decision:** `/init-project` keeps writing a `CLAUDE.md` whose first line is
+  `@AGENTS.md`. What changes is what the harness may claim about it. **"Without
+  the import, `AGENTS.md` is invisible to the session" is only true where a
+  `CLAUDE.md` exists** — and it exists because this harness wrote it. The
+  precise statement, and the one the prompts must carry, is that **a `CLAUDE.md`
+  in the working directory or above it suppresses `AGENTS.md`, and the import is
+  what puts it back**.
+- **Reason:** Claude Code reads `AGENTS.md` natively from **v2.1.277** through
+  its built-in `agents-md` plugin, and its default mode
+  (`claude-md-or-agents-md`) reads `AGENTS.md` **only where no `CLAUDE.md` or
+  `CLAUDE.local.md` sits in the working directory or above it**. _Measured
+  2026-09-21: v2.1.278 installed here, so the native path is live on this
+  machine and the old blanket claim is now false on it._ The import is still the
+  right shape for three reasons the native path does not cover: **portability**
+  — the official docs list five kinds of session that cannot read `AGENTS.md`
+  directly (a version below v2.1.277, a provider that fetches no feature flags
+  such as Bedrock, telemetry disabled, the first session after an install or
+  upgrade, and `disableAllHooks` / `allowManagedHooksOnly`), and the import is
+  what works in all of them; **verifiability** — an `AGENTS.md` read natively is
+  **not listed** in `/memory` or under **Memory files** in `/context`, while an
+  imported one is visible through its `CLAUDE.md`, which is rule 1 applied to
+  the harness's own loading; **hooks** — `InstructionsLoaded` hooks do not fire
+  for a natively read `AGENTS.md`, and do fire for one reached through the
+  import. The docs say so outright: _«A `CLAUDE.md` containing `@AGENTS.md`: you
+  can leave it. Keeping the import never makes Claude read `AGENTS.md` twice,
+  whichever Project instructions value you use.»_
+- **Rejected:** dropping `CLAUDE.md` so the native path takes over — it trades a
+  one-line file for five session types that then read no instructions at all,
+  and costs the `/context` check that proves the file loaded; a symlink from
+  `CLAUDE.md` to `AGENTS.md`, which the same docs rule out on Windows, where git
+  checks it out as a one-line text file unless `core.symlinks` is on — this
+  harness already refuses it in `commands/init-project.md` and now cites a
+  source for it; setting `claude-md-and-agents-md`, because it is a per-machine
+  setting and a project cannot depend on it (Claude Code ignores it in project
+  and local settings files).
+- **Source:** <https://code.claude.com/docs/en/memory>, read 2026-09-21.
 
 <!-- Guidance, copied from the harness's DECISIONS template when this file
      was created. **Nothing rewrites it**: it is not a managed block, so
