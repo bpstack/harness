@@ -633,6 +633,8 @@
 ## ADR-032 — MIT for the harness, and `reference/security/` stays under CC BY-SA 4.0
 
 - **Status:** ✅ accepted
+- **Revised by:** ADR-034 — the exception moved out of `LICENSE` into
+  `LICENSE-EXCEPTIONS.md`. The split of the two licences is unchanged.
 - **Date:** 2026-09-18
 - **Decision:** The repository is published under **MIT**. The exception,
   declared inside the `LICENSE` file itself, is `reference/security/`: it is
@@ -670,6 +672,22 @@
 - **Rejected:** leaving it in `verify` and accepting the red; making it warn
   instead of cut, which contradicts guards that fail rather than warn; deleting
   `asvs:age`, which is the only one of the two that needs no network.
+
+## ADR-034 — The licence exception lives beside `LICENSE`, not inside it
+
+- **Status:** 🔶 proposed (2026-09-21)
+- **Decision:** `LICENSE` carries the MIT text and nothing else. The
+  `reference/security/` exception moves to `LICENSE-EXCEPTIONS.md`. Which files
+  are under which licence does not change.
+- **Reason:** GitHub detects a licence by matching the file against the known
+  texts. The appended exception dropped the match: `gh repo view` reported
+  `licenseInfo.key: "other"`, so the repository showed no MIT badge and did not
+  answer a `license:mit` search. That is the opposite of what ADR-032 wanted —
+  to state the licence clearly — and the appendix was what cost it.
+- **Rejected:** leaving a one-line pointer at the foot of `LICENSE`, because it
+  is the same bet that just failed and the match threshold is not ours to know;
+  a `NOTICE` file, still, for the reason ADR-032 gave — the name says nothing
+  about what is inside, while `LICENSE-EXCEPTIONS.md` is read from its title.
 
 <!-- Guidance, copied from the harness's DECISIONS template when this file
      was created. **Nothing rewrites it**: it is not a managed block, so
