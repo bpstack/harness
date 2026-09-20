@@ -11,7 +11,7 @@ commands, so a new repo does not begin with an empty `AGENTS.md`.
 
 ## What it does, in one pass
 
-You run one command in a new repo and it writes that repo's `AGENTS.md`: the
+You run `pnpm run init` in a new repo and it writes that repo's `AGENTS.md`: the
 file every agent reads before touching anything.
 
 1. **It looks at the repo** — the package manager and the scripts that exist —
@@ -26,10 +26,10 @@ file every agent reads before touching anything.
 4. **It refuses when it should.** A repo that already has content is not
    scaffolded over, and marks that do not pair are not guessed at.
 
-Alongside that it distributes the **global harness** — the subagents, the
-commands and the reference material — to the folders each tool reads, and it
-carries **guards** that fail the build rather than warn: leaked private names,
-unmanaged marker families, broken links.
+Alongside that, `pnpm run sync:global` distributes the **global harness** — the
+subagents, the commands and the reference material — to the folders each tool
+reads, and it carries **guards** that fail the build rather than warn: leaked
+private names, unmanaged marker families, broken links.
 
 ## Why it is like this
 
@@ -61,6 +61,65 @@ tripping over them:
 | [`reference/`](./reference/)                               | What agents open on demand: [`traps.md`](./reference/traps.md), the ASVS sheet             |
 | [`agents/`](./agents/) · [`commands/`](./commands/)        | The global harness, in a neutral format                                                    |
 | [`bin/`](./bin/) · [`lib/`](./lib/) · [`tests/`](./tests/) | The generator, the propagator, the guards, their libraries and their tests                 |
+
+## Using it
+
+The two commands that do the work. Both are **dry run by default**: they print
+what they would do, and write only with `--apply`.
+
+### `init-project` — a project's first `AGENTS.md`
+
+```bash
+pnpm run init ../a-project              # what it would write
+pnpm run init --apply ../a-project
+```
+
+It writes **three files, not one**: `AGENTS.md` (the title, and layer 1 between
+its marks), `CLAUDE.md` (a single `@AGENTS.md` line — without it Claude Code
+reads none of this), and `docs/DECISIONS.md` from its mould.
+
+**Re-running is safe, and is the point.** A second pass over an unchanged clone
+reports `layers already current` and writes nothing. On a repo that already has
+an `AGENTS.md` it refreshes layer 1 in place and leaves everything outside the
+marks byte for byte: the section nobody can regenerate — what the model gets
+wrong with _this_ code — is never scaffolded over.
+
+📌 **It also reports the foundations, and does not fix them.** `.gitattributes`,
+a pinned Node version, `packageManager`, a `verify` script, a CI workflow and
+the rest: each one is named with the consequence of its absence, and left for
+the owner. A generator that installs and configures on its own is exactly what
+rule 4 forbids.
+
+### `sync-global` — the agents, commands and reference material
+
+```bash
+pnpm run sync:global --dest <folder>            # what it would write
+pnpm run sync:global --dest <folder> --apply
+pnpm run sync:check                             # has the deployed copy drifted?
+```
+
+⚠️ **`--dest` is required to write, and has no default.** Writing into the real
+configuration would put two sources behind one destination, and the last to run
+would win in silence. `--check` reads only, so that reason does not reach it and
+it defaults to your home — a guard that needs a folder passed to it is a guard
+nobody runs.
+
+It writes, under the destination, `.claude/agents/` and `.claude/commands/` in
+each tool's dialect, `.claude/reference/` (`traps.md`, the ASVS sheet and the
+moulds), and the install seal at `.claude/harness/install.json` — the version,
+the date, the tools and where this clone lives, which is how the deployed
+commands find these scripts again.
+
+🔴 **It deletes as well as writes**, and only ever a file that carries the
+harness mark and is no longer in the source: a renamed agent does not stay alive
+next to its replacement. A file without the mark is someone else's — it is named
+and left. `reference/` is never pruned.
+
+Claude Code is always written; opencode only where `~/.config/opencode` already
+exists, or with `--opencode` to set a machine up before installing it. Every run
+ends by saying **what did not travel** — a bash allow-list cannot be expressed
+in Claude Code's frontmatter, so it names each subagent where that happens
+instead of letting the gap pass as applied.
 
 ## Verify
 
