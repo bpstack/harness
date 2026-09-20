@@ -134,3 +134,37 @@ pnpm 10.34.1 it does not**: same request, same older build, exit 0.
 _Trigger: pnpm with `minimumReleaseAge`. Measured on 2026-09-17 with pnpm
 10.34.1: `typescript@next`, published 14 hours earlier, resolved to the build
 from eight days before, exit 0 — with and without the strict setting._
+
+## A `CLAUDE.md` you did not write hides the `AGENTS.md` you did
+
+Claude Code reads `AGENTS.md` on its own from **v2.1.277** — but only where no
+`CLAUDE.md`, `.claude/CLAUDE.md` or `CLAUDE.local.md` sits in the working
+directory **or any directory above it**. Any of the three switches the native
+path off, and nothing announces it: the session runs without the project's
+instructions and reports nothing missing.
+
+Two shapes bite, and neither is in the repo's own diff:
+
+- **`CLAUDE.local.md`** — the file meant for your own uncommitted notes. Adding
+  one to a project whose instructions live in `AGENTS.md` costs you `AGENTS.md`,
+  and only you: the repo keeps working for everybody else.
+- **A `CLAUDE.md` in a parent folder** — say in the directory your repos sit
+  under. It is outside the repo, absent from its git, and it covers every
+  project below it at once.
+
+`~/.claude/CLAUDE.md` and managed instructions do **not** count; those keep
+loading alongside `AGENTS.md`.
+
+**How to tell**, because the usual check does not work here: an `AGENTS.md` read
+natively is **not** listed by `/memory` or under **Memory files** in `/context`,
+so that list cannot confirm it. What confirms it is the line an interactive
+session prints at start — `no CLAUDE.md found; AGENTS.md loaded: <path>` — and
+its **absence** is the signal. The fix is an `@AGENTS.md` import inside whatever
+`CLAUDE.md` is shadowing it.
+
+_Trigger: Claude Code v2.1.277 or later, any project whose instructions live in
+`AGENTS.md`. Measured on 2026-09-21 with v2.1.278: a folder holding only an
+`AGENTS.md` answered a question from it; a one-line `CLAUDE.local.md` about tabs
+added beside it turned the same answer to `NONE`, and so did a one-line
+`CLAUDE.md` placed one directory above. Leaves if the default **Project
+instructions** value stops being `claude-md-or-agents-md`._
