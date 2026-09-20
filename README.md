@@ -1,7 +1,6 @@
 # harness
 
-A reusable starting harness for new projects: rules, templates, agents and
-commands, so a new repo does not begin with an empty `AGENTS.md`.
+A reusable foundation for AI projects: rules, agents, templates, and commands.
 
 > **Status: early.** The generator, `propagate`, `sync-global` and `uninstall`
 > work and are tested. The scaffolding this repo demands of every project it
@@ -11,25 +10,24 @@ commands, so a new repo does not begin with an empty `AGENTS.md`.
 
 ## What it does, in one pass
 
-You run `pnpm run init` in a new repo and it writes that repo's `AGENTS.md`: the
-file every agent reads before touching anything.
+`sync-global` installs the harness on a machine, once: the subagents, the
+commands and the reference material, into the folders each tool reads — and it
+carries **guards** that fail the build rather than warn: leaked private names,
+unmanaged marker families, broken links.
 
-1. **It looks at the repo** — the package manager and the scripts that exist —
-   and says what it found and why, so a wrong guess can be argued with.
-2. **It writes two layers into one file.** Layer 1 is the invariants, copied
-   word for word into every project, between marks. Layer 2 is everything
-   outside the marks: what only that project knows, and the harness never
-   touches it.
-3. **It marks what is its own.** The generated blocks sit between markers, and
-   everything outside them survives every later pass byte for byte. That is what
-   makes it safe to run again on a repo someone has been editing by hand.
+After that, `/init-project` is what does the per-project work: it writes a
+repo's first `AGENTS.md`, the file every agent reads before touching anything.
+
+1. **It looks at the repo first** — the package manager and the scripts that
+   exist — and says what it found and why, so a wrong guess can be argued with.
+2. **One file, two layers.** Layer 1 is the same text in every project, copied
+   between marks. Layer 2 is everything else in the file — what only this
+   project knows, and the harness never touches it.
+3. **It only ever rewrites layer 1.** Everything outside the marks survives byte
+   for byte, which is what makes it safe to run again on a repo someone has been
+   editing by hand.
 4. **It refuses when it should.** A repo that already has content is not
    scaffolded over, and marks that do not pair are not guessed at.
-
-Alongside that, `pnpm run sync:global` distributes the **global harness** — the
-subagents, the commands and the reference material — to the folders each tool
-reads, and it carries **guards** that fail the build rather than warn: leaked
-private names, unmanaged marker families, broken links.
 
 ## Why it is like this
 
@@ -64,82 +62,41 @@ tripping over them:
 
 ## Using it
 
-The commands that do the work. All are **dry run by default**: they print what
-they would do, and write only with `--apply`.
+Two steps, and only two, to get running.
 
-### `init-project` — a project's first `AGENTS.md`
-
-```bash
-pnpm run init ../a-project              # what it would write
-pnpm run init --apply ../a-project
-```
-
-It writes **three files, not one**: `AGENTS.md` (the title, and layer 1 between
-its marks), `CLAUDE.md` (a single `@AGENTS.md` line — without it Claude Code
-reads none of this), and `docs/DECISIONS.md` from its mould.
-
-**Re-running is safe, and is the point.** A second pass over an unchanged clone
-reports `layers already current` and writes nothing. On a repo that already has
-an `AGENTS.md` it refreshes layer 1 in place and leaves everything outside the
-marks byte for byte: the section nobody can regenerate — what the model gets
-wrong with _this_ code — is never scaffolded over.
-
-📌 **It also reports the foundations, and does not fix them.** `.gitattributes`,
-a pinned Node version, `packageManager`, a `verify` script, a CI workflow and
-the rest: each one is named with the consequence of its absence, and left for
-the owner. A generator that installs and configures on its own is exactly what
-rule 4 forbids.
-
-### `propagate` — refresh layer 1 where it is already installed
+### 1. Install the harness — once per machine, with pnpm
 
 ```bash
-pnpm run propagate ../a-project ../another   # what would change
-pnpm run propagate --apply ../a-project
+pnpm run sync:global --dest ~/.claude              # what it would write
+pnpm run sync:global --dest ~/.claude --apply
 ```
 
-It takes as many repos as you hand it. `init-project` writes the file the first
-time; this is what keeps it current afterwards, and a repo whose layer 1 already
-matches is reported as `already current` rather than rewritten.
+Writes the agents, commands and reference material where each tool reads them,
+and leaves a seal at `.claude/harness/install.json` pointing back at this clone
+— that seal is what `/init-project` uses to find it. opencode is written only
+when asked or already installed — see
+[Installing the agent CLIs](#installing-the-agent-clis).
 
-🔴 **Only what sits between the marks changes**, and that is checked on the real
-file immediately before writing, not only in the tests. A promise that lives
-only in a test does not protect against the case the test never imagined.
+### 2. Start a project — once per repo, with `/init-project`
 
-📌 **It also reports the rule citations a project got wrong.** Layer 1's numbers
-shift when a rule leaves, so prose that cites "rule 13" can end up naming
-something else entirely. It says so and **never rewrites**: the line is outside
-the marks, and that makes it the project's.
-
-### `sync-global` — the agents, commands and reference material
-
-```bash
-pnpm run sync:global --dest <folder>            # what it would write
-pnpm run sync:global --dest <folder> --apply
-pnpm run sync:check                             # has the deployed copy drifted?
+```
+/init-project <path-to-project>
 ```
 
-⚠️ **`--dest` is required to write, and has no default.** Writing into the real
-configuration would put two sources behind one destination, and the last to run
-would win in silence. `--check` reads only, so that reason does not reach it and
-it defaults to your home — a guard that needs a folder passed to it is a guard
-nobody runs.
+Writes that repo's `AGENTS.md`, asks what only the owner can answer (security
+level, where the model gets this code wrong), and reports what is missing.
+**Re-running is safe**: a repo whose layer 1 already matches is left alone.
 
-It writes, under the destination, `.claude/agents/` and `.claude/commands/` in
-each tool's dialect, `.claude/reference/` (`traps.md`, the ASVS sheet and the
-moulds), and the install seal at `.claude/harness/install.json` — the version,
-the date, the tools and where this clone lives, which is how the deployed
-commands find these scripts again.
+Do not run `pnpm run init` yourself — `/init-project` is what calls it, after
+asking the questions the raw script cannot.
 
-🔴 **It deletes as well as writes**, and only ever a file that carries the
-harness mark and is no longer in the source: a renamed agent does not stay alive
-next to its replacement. A file without the mark is someone else's — it is named
-and left. `reference/` is never pruned.
+### Maintenance, once a project is running
 
-Claude Code is always written; opencode only where `~/.config/opencode` already
-exists, or with `--opencode` to set a machine up before installing it. Every run
-ends by saying **what did not travel** — a bash allow-list cannot be expressed
-in Claude Code's frontmatter, so it names each subagent where that happens
-instead of letting the gap pass as applied.
+- **`pnpm run propagate ../a-project`** — refresh layer 1 after it changes here.
+  `--apply` to write; without it, shows what would change.
+- **`pnpm run uninstall ../a-project`** — take the harness back out. See
+  [Taking it out again](#taking-it-out-again).
+- **`pnpm run sync:check`** — has the deployed global copy drifted from step 1?
 
 ## Verify
 
