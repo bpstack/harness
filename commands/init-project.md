@@ -121,13 +121,13 @@ Claude Code may sit below that line and the file is still a pointer** — the
 mould ships that way. What fails the test is the `@` being absent, because then
 the file imports nothing.
 
-⚠️ **This section used to open with «`CLAUDE.md` must hold one line and nothing
-else», and that was never what the code checked.** The two said different
-things, and the expensive reading is the strict one: it turns the question into
-"migrate everything or refuse", so a project with valuable content in its
-`CLAUDE.md` declares a standing exception against the import — and loses
-`AGENTS.md` entirely to keep prose the import never threatened. _Found on
-2026-09-17 in a repo that had declared exactly that, six weeks earlier._
+⚠️ **Do not read this as «`CLAUDE.md` must hold one line and nothing else».**
+That is stricter than what the code checks, and the strict reading is the
+expensive one: it turns the question into "migrate everything or refuse", so a
+project with valuable content in its `CLAUDE.md` declares a standing exception
+against the import — and loses `AGENTS.md` entirely to keep prose the import
+never threatened. _Found on 2026-09-17 in a repo that had declared exactly that,
+six weeks earlier._
 
 When `CLAUDE.md` holds **rules** instead, the repo has two sources — and 🔴
 **the damage is not the duplication, it is the asymmetry**: `CLAUDE.md` is read
@@ -242,9 +242,9 @@ done here** — the things every tool has to read. Content that is genuinely abo
 Claude Code, and useful only there, **may stay under the `@AGENTS.md` line**:
 the file is a pointer either way, and moving it buys nothing.
 
-⚠️ **This paragraph used to say "nothing stays, not even content specific to
-Claude Code".** It contradicted the check the generator actually runs, and the
-contradiction is what made an all-or-nothing choice out of a one-line fix.
+⚠️ **Do not read this as "nothing stays, not even content specific to Claude
+Code".** That contradicts the check the generator actually runs, and the
+contradiction is what makes an all-or-nothing choice out of a one-line fix.
 
 **Two more warnings can come with this one, and either changes the question:**
 
