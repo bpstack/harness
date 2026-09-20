@@ -5,9 +5,8 @@ where they go, not by what they contain: `agents/` and `commands/` go to the
 machine; `layer1.md` and this go inside the project. That is why a document
 template and a CI file sit here without contradiction.
 
-_`layer2/` used to be listed here too. It went in phase 1: there is no such
-folder any more, because layer 2 is whatever the project writes outside the
-marks._
+_`layer2/` used to be listed here too. There is no such folder any more, because
+layer 2 is whatever the project writes outside the marks._
 
 None of them is read every session. They are opened **when the file is
 created**, and the created file already carries its own rules inside. They cost

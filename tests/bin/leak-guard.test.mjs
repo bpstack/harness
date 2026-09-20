@@ -1,6 +1,6 @@
-// The roadmap requires this guard to be **sabotaged before it is trusted**:
-// feed it a private name on purpose and watch it fire. A guard that has only
-// ever seen clean input is a design, not a guarantee.
+// This guard is **sabotaged before it is trusted**: it is fed a private name
+// on purpose and watched to fire. A guard that has only ever seen clean input
+// is a design, not a guarantee.
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -11,7 +11,7 @@ import {
   report,
 } from '../../bin/leak-guard.mjs';
 
-test('🔴 a private repo name is caught — the sabotage the roadmap demands', () => {
+test('🔴 a private repo name is caught — sabotaged on purpose to prove it fires', () => {
   const found = scanText('see the notes in acme-vault for details', [
     'acme-vault',
   ]);
