@@ -5,8 +5,10 @@
 //
 //   node bin/asvs-age.mjs
 //
-// It is in `verify` and it cuts. The reasoning for the number, and for cutting
-// rather than warning, is on CHECK_MAX_DAYS in `lib/asvs.mjs`.
+// It cuts, and it runs on a schedule rather than in `verify`: it reddens
+// because time passed, not because the repo changed. The reasoning
+// for the number, and for cutting rather than warning, is on CHECK_MAX_DAYS in
+// `lib/asvs.mjs`.
 
 import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';

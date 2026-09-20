@@ -157,6 +157,8 @@
 ## ADR-009 — CI and `verify` are the same contract
 
 - **Status:** ✅ accepted
+- **Revised by:** ADR-033 — a second workflow runs the checks that time alone
+  can redden. The CI workflow still invokes `verify` and nothing else.
 - **Date:** 2026-08-08
 - **Decision:** The CI workflow invokes **`pnpm run verify` and nothing else**.
   What `verify` contains lives in `package.json`, so adding a check never edits
@@ -603,6 +605,8 @@
 ## ADR-031 — The verification checks stay, with their limits
 
 - **Status:** ✅ accepted
+- **Revised by:** ADR-033 — item 6, `asvs-age`, left `verify` and runs on a
+  schedule. The other six stay, with their limits unchanged.
 - **Date:** 2026-09-18
 - **Decision:** The repo keeps five dedicated guards plus two standard checks in
   `verify`:

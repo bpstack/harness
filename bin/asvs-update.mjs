@@ -9,7 +9,7 @@
 // and the CSV of the tag the README declares. That is why it is NOT in
 // `verify` — a red that CI cannot fix is a red that gets ignored. What `verify`
 // does check, offline, is that the shipped indexes are exactly what the shipped
-// CSV generates (see `lib/asvs.test.mjs`).
+// CSV generates (see `tests/lib/asvs.test.mjs`).
 //
 // Three outcomes:
 //   · up to date      — same normalized sha256 as the README. Nothing touched.
