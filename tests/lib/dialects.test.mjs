@@ -59,7 +59,7 @@ test('both dialects carry the identical body', () => {
 });
 
 // 🔴 The mark goes in the body, never the frontmatter: opencode would send an
-// unknown frontmatter key to the model provider (ADR-194).
+// unknown frontmatter key to the model provider.
 test('both dialects mark the file below the frontmatter', () => {
   const { front, body } = parseSource(SOURCE);
   for (const write of [forClaude, forOpencode]) {
@@ -120,7 +120,7 @@ test('a command is not an agent — no subagent mode, no permissions', () => {
   assert.doesNotMatch(content, /mode: subagent/);
   assert.match(content, /agent: build/);
   // opencode command frontmatter does not support `tools:`; emitting it would
-  // falsely suggest the command is restricted (ADR-192).
+  // falsely suggest the command is restricted.
   assert.doesNotMatch(content, /\ntools:/);
 });
 
@@ -191,7 +191,7 @@ test('a Claude agent declares name and tools', () => {
   assert.match(content, /\ntools: Read/);
 });
 
-// ADR-176: a command's allowed-tools takes patterns, so the allow-list travels;
+// A command's allowed-tools takes patterns, so the allow-list travels;
 // a pattern that could end `Bash(...)` early is refused.
 test('a Claude command carries its bash allow-list as patterns', () => {
   const front = {

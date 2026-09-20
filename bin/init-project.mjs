@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Writes a project's first AGENTS.md: a title and layer 1 between its marks,
-// and nothing else — the rest is the project's to write (ADR-187).
+// and nothing else — the rest is the project's to write.
 //
 //   node bin/init-project.mjs ../a-project
 //   node bin/init-project.mjs --apply ../a-project
@@ -171,8 +171,8 @@ function isUntouchedPointer(text) {
   return canon(text) === canon(POINTER_TEXT);
 }
 
-// The whole `CLAUDE.md` this command writes: one line, and nothing else
-// (ADR-186). Written as is — cleaning the template left a blank line behind.
+// The whole `CLAUDE.md` this command writes: one line, and nothing else.
+// Written as is — cleaning the template left a blank line behind.
 const POINTER_TEXT = '@AGENTS.md\n';
 
 // What is wrong with a `CLAUDE.md` that already exists. Only an existing one:
@@ -424,7 +424,7 @@ Evidence: ${manager.evidence}. Nothing was written.`,
   // is ours. Once the file exists, everything outside the marks belongs to the
   // project and must come out byte for byte identical, so an existing file is
   // read as-is and never passed through the whole-file formatter.
-  // A new file is a title and layer 1, nothing below (ADR-187). An existing one
+  // A new file is a title and layer 1, nothing below. An existing one
   // is read as-is: everything outside the marks is the project's.
   let out;
   if (existed) {
@@ -449,7 +449,7 @@ Evidence: ${manager.evidence}. Nothing was written.`,
   );
   const layerResults = [settled];
   if (!settled.violation) out = settled.next;
-  // ADR-190: the stack layer 2 is retired, so a block of it is taken out.
+  // The stack layer 2 is retired, so a block of it is taken out.
   const gone = settled.violation ? null : planRemoval(out, 'layer2');
   if (gone?.violation)
     layerResults.push({ ...settled, violation: gone.violation });
@@ -602,8 +602,8 @@ Evidence: ${manager.evidence}. Nothing was written.`,
     // only difference between a dry run and an `--apply` was that the "nothing
     // written" line disappeared: the run announced itself by an absence, and
     // the only way to learn whether it had worked was to go and look at the
-    // folder. This command was rewritten from scratch rather than translated
-    // (ADR-122), and the confirmation is what the rewrite dropped.
+    // folder. This command was rewritten from scratch rather than
+    // translated, and the confirmation is what the rewrite dropped.
     const written = [];
     // 🔴 An existing file with a mark violation is never touched: the same
     // refusal `propagate` makes, for the same reason — the marks cannot be

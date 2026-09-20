@@ -1,4 +1,4 @@
-# Los ajustes de pnpm viven aquí, no en `.npmrc` — regla 13, y ADR-036 lo midió:
+# Los ajustes de pnpm viven aquí, no en `.npmrc` — regla 11, y se midió:
 # la misma clave en `.npmrc` con esta grafía devuelve `undefined` y pnpm no avisa.
 #
 # Cuarentena contra paquetes recién publicados: pnpm rechaza una versión

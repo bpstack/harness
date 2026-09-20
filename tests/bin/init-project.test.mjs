@@ -54,7 +54,7 @@ test('it writes the pointer, or the whole file is invisible', () => {
   run(dir, '--apply');
   assert.ok(existsSync(join(dir, 'AGENTS.md')), 'no AGENTS.md written');
   assert.ok(existsSync(join(dir, 'CLAUDE.md')), 'no CLAUDE.md written');
-  // One line and nothing else (ADR-186).
+  // One line and nothing else.
   assert.equal(readFileSync(join(dir, 'CLAUDE.md'), 'utf8'), '@AGENTS.md\n');
 });
 
@@ -346,7 +346,7 @@ test('🔴 an existing AGENTS.md gets the layers, and keeps its own prose', () =
   assert.match(out, /^layers {4}graft$/m);
   const text = readFileSync(join(dir, 'AGENTS.md'), 'utf8');
   assert.match(text, /<!-- layer1:start/);
-  // ADR-187: the title stays first, the block goes under it, and everything
+  // The title stays first, the block goes under it, and everything
   // else the project wrote follows byte for byte.
   const [title, ...rest] = MINE.split('\n');
   assert.ok(text.startsWith(`${title}\n\n<!-- layer1:start`));

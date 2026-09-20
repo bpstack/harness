@@ -96,7 +96,7 @@ test('outside() blanks the block whichever language it is in', () => {
   assert.match(es, /⟦layer1⟧/);
 });
 
-// ADR-187: the rules come before the prose they govern, and a title stays first.
+// The rules come before the prose they govern, and a title stays first.
 test('a graft lands under the title, before the project text', () => {
   const out = graft(WITHOUT, 'layer1', 'body');
   assert.ok(out.startsWith('# A project\n\n<!-- layer1:start'));
@@ -279,7 +279,7 @@ test('one layer1 and one layer2 block in the same file are fine', () => {
   }
 });
 
-// ADR-190: the stack layer 2 is taken out whole, and nothing else moves.
+// The stack layer 2 is taken out whole, and nothing else moves.
 test('a stack layer 2 block is removed, and the text around it stays', () => {
   const text = [
     '# Project',

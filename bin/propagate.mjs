@@ -167,7 +167,7 @@ if (process.argv[1] && process.argv[1].endsWith('propagate.mjs')) {
 
   const { files, missing, absent, skipped, harness } = collect(paths);
 
-  // Layer 1 first, then the stack layer 2 is taken out of the result (ADR-190),
+  // Layer 1 first, then the stack layer 2 is taken out of the result,
   // so one pass produces one write per file rather than two.
   const body = layer1Body();
   const results = [];

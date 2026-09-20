@@ -6,7 +6,7 @@
 //   node bin/sync-global.mjs --dest /tmp/try --apply
 //
 // **Dry-run by default**, and it also **deletes** — but only a file that
-// carries the harness mark and is no longer in the source (ADR-175, ADR-194).
+// carries the harness mark and is no longer in the source.
 // A renamed agent does not stay alive; a file without the mark is someone's,
 // and it is named and left alone. `reference/` is never pruned.
 //
@@ -45,7 +45,7 @@ const keyFor = (dest, dir) => relative(dest, dir).split(sep).join('/');
 
 // The install seal: which version is on this machine, since when, for which
 // tools, and where the clone is — the commands find the scripts through
-// `source` (ADR-174, ADR-181, ADR-193).
+// `source`.
 export const SEAL = join('.claude', 'harness', 'install.json');
 
 // The clone's commit, marked `-dirty` when it has uncommitted changes: a seal
@@ -151,8 +151,8 @@ export function opencodePermission(config) {
 }
 
 // Layer 1 tells every project to check documentation through Context7 (rule
-// 17), so a machine without it is said at install time, not mid-task
-// (ADR-191). Read, never written (ADR-173). `null` means the tool is not being
+// 17), so a machine without it is said at install time, not mid-task.
+// Read, never written. `null` means the tool is not being
 // written here, so nothing is said about it.
 export function context7Notice({ claude, opencode }) {
   const lacks = (names) => names && !names.some((n) => /context7/i.test(n));
@@ -314,7 +314,7 @@ export function planSync({
         const path = join(dir, file);
         const current = existsSync(path) ? readFileSync(path, 'utf8') : null;
         // 🔴 Overwriting is as final as deleting: a file of that name without
-        // the mark is someone's, and the install stops (ADR-175).
+        // the mark is someone's, and the install stops.
         if (current !== null && !current.includes(MARK)) collisions.push(path);
         else if (current !== content) {
           writes.push({ path, content, fresh: current === null });
@@ -330,7 +330,7 @@ export function planSync({
   }
 
   // Verbatim trees: byte for byte, no dialect, one destination each, and
-  // **never pruned** — a CSV or a PDF has nowhere to carry the mark (ADR-175).
+  // **never pruned** — a CSV or a PDF has nowhere to carry the mark.
   for (const [kind, at] of Object.entries(VERBATIM)) {
     const root = at(dest);
     for (const entry of read(kind)) {
@@ -499,7 +499,7 @@ if (process.argv[1] && process.argv[1].endsWith('sync-global.mjs')) {
   if (apply && plan.collisions.length) process.exit(1);
 
   if (apply) {
-    // 🔴 Counted while it happens, not read back from the plan (ADR-148). This
+    // 🔴 Counted while it happens, not read back from the plan. This
     // is the one command here that deletes, so the count that matters is what
     // the disk took, and a directory found among the prunes is skipped: saying
     // "3 deleted" after skipping one would be the same lie in a shorter form.

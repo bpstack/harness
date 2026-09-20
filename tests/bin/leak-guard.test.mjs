@@ -40,8 +40,8 @@ test('clean text produces nothing', () => {
   assert.deepEqual(scanText('a harness for new projects', ['acme-vault']), []);
 });
 
-// The false positives ADR-125 warned about: ordinary words that happen to be
-// repo names. The boundary rule is what keeps them survivable.
+// The false positives the name check can produce: ordinary words that happen
+// to be repo names. The boundary rule is what keeps them survivable.
 test('a name does not fire inside a longer identifier', () => {
   assert.deepEqual(nameHits('const widgetOf = 1;', ['widget']), []);
   assert.deepEqual(nameHits('subwidget', ['widget']), []);

@@ -112,8 +112,8 @@ test('deletions are listed by name before anything is applied', () => {
 // the check.** It said "three files", and by then layer 1 named two: rule 12
 // names `docs/SESSION.md`, rule 13 names `docs/DECISIONS.md`, and **nothing
 // names `CLAUDE.md`** — the pointer is one line the generator writes inline
-// (ADR-186). The mould had no reader left and went with ADR-200; the
-// obligation it existed to cover had gone before it did.
+// inline. The mould had no reader left and went with it; the obligation it
+// existed to cover had gone before it did.
 test('every template the rules demand exists in this repo', () => {
   const dir = join(REPO, 'templates');
   const present = readdirSync(dir);
@@ -285,7 +285,7 @@ test('🔴 a hand-written agent is never deleted, and is named', () => {
   assert.match(foreign.join('\n'), /left alone/);
 });
 
-// 🔴 Overwriting is as final as deleting (ADR-175).
+// 🔴 Overwriting is as final as deleting.
 test('an unmarked file with a name we would write stops the plan', () => {
   const dest = destWith({ '.claude/agents/a.md': 'my own a' });
   const { writes, collisions } = planSync({ dest, read });
@@ -328,7 +328,7 @@ test('a marked file no longer in the source is deleted; an unmarked one stays', 
 });
 
 // 🔴 reference/ holds a CSV and a PDF, with nowhere to carry the mark: it is
-// overwritten, never pruned (ADR-175).
+// overwritten, never pruned.
 test('a spare file in reference is never deleted, even with the mark', () => {
   const dest = destWith({ [`.claude/reference/old.md`]: MARK });
   assert.deepEqual(planSync({ dest, read }).prunes, []);
@@ -378,7 +378,7 @@ test('every top-level entry of reference/ is named by something outside it', () 
   }
 });
 
-// 🔴 ADR-148, and this is the command of the three that deletes. An `--apply`
+// 🔴 This is the command of the three that deletes. An `--apply`
 // used to differ from a dry run only by the absence of the "nothing written"
 // line: measured against a virgin folder it created 39 files and said nothing
 // about any of them. The count is taken while writing, and includes the record
@@ -619,7 +619,7 @@ test('🔴 a machine without opencode is not told to edit a config it lacks', ()
   assert.equal(opencodePermission(null), null);
 });
 
-// --- Context7 (ADR-191) ---
+// --- Context7 ---
 
 test('Context7 in both configs says nothing', () => {
   assert.equal(

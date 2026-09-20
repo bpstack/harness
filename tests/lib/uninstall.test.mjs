@@ -50,7 +50,7 @@ test('a file with no block of ours is reported clean, not rewritten', () => {
   assert.equal(next, plain, 'a clean file was rewritten');
 });
 
-// 🔴 Same refusal as `propagate` (ADR-150), and for the same reason: the span
+// 🔴 Same refusal as `propagate`, and for the same reason: the span
 // cannot be read one way only, so guessing would delete the project's prose.
 test('a file whose marks do not pair is refused, not stripped', () => {
   const broken = '# X\n\n<!-- layer1:start · x -->\nhalf a block\n\nMine.\n';
