@@ -188,6 +188,25 @@ theirs.
 | `CLAUDE.md` has what `AGENTS.md` lacks | move that content in, **outside the marks**, then shrink |
 | they contradict each other             | the same one-at-a-time pass `propagate` uses             |
 
+**Two findings change the question entirely, and either can arrive with any of
+the above:**
+
+- **`CLAUDE.md` is not in git.** Then its content has never left this machine,
+  and moving it into `AGENTS.md` **publishes it**. Ask whether the repo is
+  public — **do not look it up**: that ties the command to a tool being
+  installed and authenticated, and a failed lookup reads as "private", which is
+  the expensive way to be wrong. The owner knows. And offer the fourth exit,
+  usually the right one: **split it in two** — what can be public goes in, the
+  rest stays where it is.
+- **`CLAUDE.md` is a symbolic link.** 🔴 **Refuse the migration and say so
+  before anything else**, then propose a real file. This is the one case that is
+  not a judgement call: what you read through a link and what git stores are two
+  different things, so a migration here moves content you cannot be sure you
+  read. Git stores a link as a special entry; where it cannot create one
+  —Windows without developer mode— it materialises **a text file containing the
+  path**, which the harness then reads as its whole ruleset. No error, no
+  warning.
+
 ### What migrates arrives under a heading that says where it came from
 
 🔴 **Without it the operation is not idempotent.** A second run has no way to
@@ -245,31 +264,9 @@ would satisfy both readings; do not edit their declaration, and do not raise it
 twice.
 
 **What moves is what belongs in `AGENTS.md`: rules, conventions, how work is
-done here** — the things every tool has to read. Content that is genuinely about
-Claude Code, and useful only there, **may stay under the `@AGENTS.md` line**:
-the file is a pointer either way, and moving it buys nothing.
-
-⚠️ **Do not read this as "nothing stays, not even content specific to Claude
-Code".** That contradicts the check the generator actually runs, and the
-contradiction is what makes an all-or-nothing choice out of a one-line fix.
-
-**Two more warnings can come with this one, and either changes the question:**
-
-- **`CLAUDE.md` is not in git.** Then its content has never left this machine,
-  and moving it into `AGENTS.md` **publishes it**. Ask whether the repo is
-  public — **do not look it up**: that ties the command to a tool being
-  installed and authenticated, and a failed lookup reads as "private", which is
-  the expensive way to be wrong. The owner knows. And offer the fourth exit,
-  usually the right one: **split it in two** — what can be public goes in, the
-  rest stays where it is.
-- **`CLAUDE.md` is a symbolic link.** 🔴 **Refuse the migration and say so
-  before anything else**, then propose a real file. This is the one case that is
-  not a judgement call: what you read through a link and what git stores are two
-  different things, so a migration here moves content you cannot be sure you
-  read. Git stores a link as a special entry; where it cannot create one
-  —Windows without developer mode— it materialises **a text file containing the
-  path**, which the harness then reads as its whole ruleset. No error, no
-  warning.
+done here** — the things every tool has to read. What is genuinely Claude Code's
+may stay below the import: that rule, and the warning against reading it as
+all-or-nothing, are stated once at the top of this step.
 
 ### If it says git ignores one of the files
 
