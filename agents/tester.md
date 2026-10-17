@@ -39,8 +39,11 @@ A machine behaves differently from how it reads. Open
 `~/.claude/reference/traps.md` if it is there: it holds what will make a command
 fail for a reason that is not the code — no Node auto-switch in an agent
 session, `fnm exec` refusing npm shims on Windows, a pnpm that is one per Node
-and not one per machine. **If the file is not there, say so and carry on**; do
-not invent what it would have said.
+and not one per machine. 🔴 **Open it with the read tool, never with the
+shell**: in opencode your shell runs only an allow-list of commands, so a denied
+`ls` or `cat` says nothing about whether the file exists. `~` is your home
+directory; if the tool wants an absolute path, expand it. **If the read fails,
+say so and carry on**; do not invent what it would have said.
 
 ### 1. Detect the project type
 

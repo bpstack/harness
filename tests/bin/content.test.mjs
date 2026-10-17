@@ -60,3 +60,24 @@ test('🔴 no path to the shipped artefacts travels without its base', () => {
     }
   }
 });
+
+// 🔴 An agent whose shell is an allow-list cannot check a file with `ls`: in
+// opencode the command is denied, and a denial reads like absence. Measured on
+// 2026-10-18 — `security` ran `ls ~/.claude/reference/security/asvs.md`, got
+// "Permission denied: shell", and shipped a level-3 review with no citation
+// while the sheet was in place. Any such agent that sends itself to the shared
+// reference has to say how to look: with the read tool.
+test('🔴 an agent with a restricted shell checks the reference with the read tool', () => {
+  for (const file of readdirSync(join(REPO, 'agents'))) {
+    const text = read('agents', file);
+    if (!/^bash-allow:/m.test(text) || !text.includes('~/.claude/reference/'))
+      continue;
+    assert.match(
+      text,
+      /with\s+the\s+read\s+tool,\s+never\s+with\s+the\s+shell/,
+      `agents/${file} sends itself to ~/.claude/reference/ with a restricted ` +
+        'shell and never says to open it with the read tool: a denied `ls` ' +
+        'will be taken for a missing file.',
+    );
+  }
+});

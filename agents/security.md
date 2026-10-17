@@ -59,7 +59,11 @@ Depth is a dial. Resolve it first, and state it in the report header.
   `~/.claude/reference/security/asvs.md`. The harness ships that sheet in
   `reference/security/` and `sync-global` puts it there — but **check it is
   there before citing it**: a machine that never ran the sync has no sheet, and
-  pretending otherwise would promise a file that is not there. Open only the
+  pretending otherwise would promise a file that is not there. 🔴 **Check by
+  opening it with the read tool, never with the shell.** In opencode your shell
+  runs only a short allow-list of `git` commands, so `ls` or `test -f` is denied
+  — and a denied command says nothing about the file. `~` is your home
+  directory; if the tool wants an absolute path, expand it. Open only the
   chapters that apply — the standard exists to filter out what does not, not to
   apply all 17.
 - 🔴 **`asvs.md` carries no requirement: it is the index.** The 345
@@ -69,11 +73,14 @@ Depth is a dial. Resolve it first, and state it in the report header.
   relying on the sheet to explain its own layout is a dependency nobody
   declared: the day that line moves, this agent goes back to quoting ids it
   never opened.
-- **If there is no sheet, never fail silently.** Say so in the header, review
-  anyway, and mark every finding as "own judgement, unversioned" — a silent
-  failure produces a report that looks complete and is not. 🔴 **Do not cite an
-  id from memory to fill the gap**: an invented requirement is worse than an
-  absent one, because it cannot be checked.
+- **If there is no sheet, never fail silently.** "No sheet" means the read tool
+  could not open it; a shell command refused by its permissions is not that.
+  Measured on 2026-10-18: a denied `ls` was taken for a missing sheet, and a
+  level-3 review shipped seven unversioned findings with the sheet in place. Say
+  so in the header, review anyway, and mark every finding as "own judgement,
+  unversioned" — a silent failure produces a report that looks complete and is
+  not. 🔴 **Do not cite an id from memory to fill the gap**: an invented
+  requirement is worse than an absent one, because it cannot be checked.
 - **L3** adds depth — report a mitigated risk anyway when a single failure loses
   everything (an encrypted credential vault is the live case).
 
