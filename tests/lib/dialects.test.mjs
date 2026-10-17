@@ -97,6 +97,26 @@ test('opencode gets the allow-list, denying everything else first', () => {
   assert.ok(denyAt < content.indexOf("'git status *': allow"));
 });
 
+// ⚠️ Kept, because V1 applies it; announced, because V2 moves it under
+// `request.body` and does not send that yet. A value that changes nothing must
+// not look as if it did.
+test('the temperature opencode V2 does not apply is warned about', () => {
+  const { front, body } = parseSource(SOURCE);
+  const { content, warnings } = forOpencode(front, body);
+  assert.match(content, /temperature: 0\.2/, 'V1 still needs it written');
+  assert.equal(warnings.length, 1);
+  assert.match(warnings[0], /^reviewer: `temperature: 0\.2` is not applied/);
+  assert.match(warnings[0], /opencode V2/);
+  assert.match(warnings[0], /V1 applies it/);
+});
+
+test('without a temperature, opencode has nothing to warn about', () => {
+  const front = { name: 'a', description: 'd', kind: 'agent', tools: 'read' };
+  assert.deepEqual(forOpencode(front, 'b').warnings, []);
+  const command = { ...front, kind: 'command', temperature: '0.2' };
+  assert.deepEqual(forOpencode(command, 'b').warnings, []);
+});
+
 // 🔴 The bug this encodes: omitting the block when there is no bash left bash
 // ALLOWED — the opposite of what the source declares.
 test('no bash in the source means bash is explicitly denied', () => {
