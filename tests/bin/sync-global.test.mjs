@@ -12,6 +12,7 @@ import {
   foreignNotice,
   unmanagedMemory,
   opencodePermission,
+  opencodeServers,
   context7Notice,
 } from '../../bin/sync-global.mjs';
 import { MARK } from '../../lib/dialects.mjs';
@@ -579,11 +580,24 @@ test('and nothing is said when there is none', () => {
 // the permission rule there**. Nothing does: this tool writes agents and
 // commands, never config, and the machine it was measured on already had the
 // line from months earlier. It works there because the old harness came first.
-test('🔴 opencode without the rule is told, because the default is ask', () => {
-  const notice = opencodePermission({});
+test('🔴 opencode V1 without the rule is told, because its default is ask', () => {
+  const notice = opencodePermission({ permission: { edit: 'allow' } });
   assert.match(notice, /no rule letting agents read/);
-  assert.match(notice, /defaults to \*\*ask\*\*/);
+  assert.match(
+    notice,
+    /in opencode V1 `permission\.external_directory` defaults to \*\*ask\*\*/,
+  );
+  assert.match(notice, /"permission": \{ "external_directory"/);
   assert.match(notice, /does not write that file/);
+});
+
+// 🔴 A config with no permission rules of either shape cannot be placed: V1
+// would ask, V2 allows. Saying only one of those is wrong on half the machines.
+test('🔴 a config with no rules of either shape says what each version does', () => {
+  const notice = opencodePermission({}, '/srv/u');
+  assert.match(notice, /On opencode V2 none is needed/);
+  assert.match(notice, /allowed by default/);
+  assert.match(notice, /On V1 it defaults to \*\*ask\*\*/);
 });
 
 test('a rule naming the reference path silences it', () => {
@@ -619,7 +633,146 @@ test('🔴 a machine without opencode is not told to edit a config it lacks', ()
   assert.equal(opencodePermission(null), null);
 });
 
+// --- opencode V2: `permissions`, an ordered array where the last match wins ---
+
+const rule = (action, resource, effect) => ({ action, resource, effect });
+
+// 🔴 The config this was measured against on the dz machine on 2026-10-18: a
+// broad ask, then the exception. V1 logic read no `permission` key and warned
+// that the rule was missing while it was there.
+test('🔴 V2: the measured config — ask everywhere, then allow the reference — says nothing', () => {
+  const config = {
+    permissions: [
+      rule('external_directory', '*', 'ask'),
+      rule('external_directory', '~/.claude/reference/*', 'allow'),
+    ],
+  };
+  assert.equal(opencodePermission(config, 'C:\\Users\\u'), null);
+  assert.equal(opencodePermission(config, '/srv/u'), null);
+});
+
+// With no rule for it, V2 allows external directories: the base policy allows
+// everything but `.env`. Warning there would be the old false alarm again.
+test('V2 with no external_directory rule says nothing, because its default is allow', () => {
+  assert.equal(opencodePermission({ permissions: [] }, '/srv/u'), null);
+  const config = {
+    permissions: [rule('shell', '*', 'ask'), rule('read', '*.env', 'deny')],
+  };
+  assert.equal(opencodePermission(config, '/srv/u'), null);
+});
+
+// The same two rules, the other way round: the broad ask comes last and wins.
+test('🔴 V2: the last matching rule wins, so an ask after the allow is told', () => {
+  const config = {
+    permissions: [
+      rule('external_directory', '~/.claude/reference/*', 'allow'),
+      rule('external_directory', '*', 'ask'),
+    ],
+  };
+  const notice = opencodePermission(config, '/srv/u');
+  assert.match(notice, /says \*\*ask\*\*/);
+  assert.match(notice, /last match wins/);
+  assert.match(
+    notice,
+    /"action": "external_directory", "resource": "~\/\.claude\/reference\/\*", "effect": "allow"/,
+  );
+  assert.doesNotMatch(notice, /defaults to/, 'V2 has no ask default to cite');
+  assert.match(notice, /does not write that file/);
+});
+
+test('V2: a deny on the reference is told, and named as a deny', () => {
+  const config = {
+    permissions: [rule('external_directory', '~/.claude/*', 'deny')],
+  };
+  assert.match(opencodePermission(config, '/srv/u'), /says \*\*deny\*\*/);
+});
+
+// `*` in `action` covers `external_directory` too.
+test('V2: a wildcard action counts as an external_directory rule', () => {
+  const config = { permissions: [rule('*', '*', 'ask')] };
+  assert.match(opencodePermission(config, '/srv/u'), /says \*\*ask\*\*/);
+});
+
+// A rule about another directory does not touch the reference.
+test('V2: an ask on another directory says nothing', () => {
+  const config = {
+    permissions: [rule('external_directory', '~/secrets/*', 'ask')],
+  };
+  assert.equal(opencodePermission(config, '/srv/u'), null);
+});
+
+// opencode expands a leading `~` or `$HOME`, normalises backslashes and
+// ignores case on Windows; an absolute path is compared as written.
+test('V2: $HOME, absolute paths and Windows separators match the reference too', () => {
+  const after = (resource) => ({
+    permissions: [
+      rule('external_directory', '*', 'ask'),
+      rule('external_directory', resource, 'allow'),
+    ],
+  });
+  assert.equal(
+    opencodePermission(after('$HOME/.claude/reference/*'), '/srv/u'),
+    null,
+  );
+  assert.equal(opencodePermission(after('/srv/u/.claude/*'), '/srv/u'), null);
+  assert.equal(
+    opencodePermission(
+      after('c:\\users\\u\\.claude\\reference\\*'),
+      'C:\\Users\\u',
+    ),
+    null,
+  );
+  // And `~` is the home, not any directory with that prefix.
+  assert.match(
+    opencodePermission(after('~other/.claude/reference/*'), '/srv/u'),
+    /says \*\*ask\*\*/,
+  );
+});
+
+// 🔴 The real path end to end: read from disk at the destination, and the
+// destination is the home the rules' `~` stands for.
+test('🔴 V2: planSync reads the config at the destination and stays quiet', () => {
+  const dest = destWith({
+    '.config/opencode/opencode.json': JSON.stringify({
+      permissions: [
+        rule('external_directory', '*', 'ask'),
+        rule('external_directory', '~/.claude/reference/*', 'allow'),
+      ],
+      mcp: { servers: { context7: { type: 'remote' } } },
+    }),
+    '.claude.json': JSON.stringify({ mcpServers: { context7: {} } }),
+  });
+  const said = planSync({
+    dest,
+    read,
+    targets: ['claude', 'opencode'],
+  }).foreign.join('\n');
+  assert.doesNotMatch(said, /external_directory/);
+  assert.doesNotMatch(said, /Context7/);
+});
+
 // --- Context7 ---
+
+// V2 nests the servers under `mcp.servers`; V1 put them straight under `mcp`.
+test('opencode server names are read from V2 and from V1', () => {
+  assert.deepEqual(opencodeServers({ mcp: { servers: { context7: {} } } }), [
+    'context7',
+  ]);
+  assert.deepEqual(opencodeServers({ mcp: { context7: {} } }), ['context7']);
+  assert.deepEqual(opencodeServers({}), []);
+});
+
+// 🔴 With context7 under `mcp.servers`, reading `mcp`'s keys found only
+// `servers` and warned that it was missing.
+test('🔴 V2: Context7 under mcp.servers is found', () => {
+  const opencode = opencodeServers({ mcp: { servers: { context7: {} } } });
+  assert.equal(context7Notice({ claude: ['context7'], opencode }), null);
+});
+
+test('a Context7 missing from opencode names both places it can live', () => {
+  const said = context7Notice({ claude: ['context7'], opencode: [] });
+  assert.match(said, /opencode\.json` \(`mcp\.servers`, or `mcp` on V1\)/);
+});
 
 test('Context7 in both configs says nothing', () => {
   assert.equal(

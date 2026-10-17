@@ -109,10 +109,21 @@ export function foreignNotice(foreign, folder) {
 }
 
 // 🔴 The shared reference goes to `.claude/reference/` whichever tool asked for
-// it, and the `security` agent's prompt carries that path written in. opencode
-// reaches outside its workspace only when told to: `permission.external_directory`
-// defaults to **ask**, so without a rule the subagent stops mid-review to ask —
-// or, unattended, reviews without the sheet it was told to cite.
+// it, and the `security` agent's prompt carries that path written in. Whether
+// opencode lets an agent read there depends on its version, and the two answer
+// differently with no rule at all:
+//
+// - **V1**, `permission.external_directory`: an object of pattern → verdict,
+//   or one verdict for every path. Unset, it **asks**, so the subagent stops
+//   mid-review to ask — or, unattended, reviews without the sheet.
+// - **V2**, `permissions`: an array of `{ action, resource, effect }` where the
+//   **last matching rule wins**. With no rule for it, `external_directory` is
+//   **allowed** — the base policy allows everything but `.env`.
+//
+// 🔴 The config does not say which version reads it — no version key, the same
+// `$schema` — so the shape of the rules is what places it. A config with
+// neither shape cannot be placed, and its notice says what each version does
+// instead of guessing which one it is talking to.
 //
 // 📐 That it can read there **was measured in execution on 2026-08-07**: the
 // `security` subagent opened the sheet and quoted four requirements with their
@@ -125,9 +136,30 @@ export function foreignNotice(foreign, folder) {
 // file beside it. And the failure it prevents is loud, not silent: the agent
 // says in its header that it had no sheet and marks every finding as its own
 // judgement — a worse review, not a false one.
-export function opencodePermission(config) {
+export function opencodePermission(config, home) {
   if (config === null) return null; // no opencode here: nothing to say
-  const external = config?.permission?.external_directory;
+  const why =
+    'The `security` agent is told to cite the ASVS sheet from there, so ' +
+    'without it that agent stops to ask mid-review — or reviews without the ' +
+    'sheet and says so.';
+  const v1Rule =
+    '`"permission": { "external_directory": { "~/.claude/reference/**": ' +
+    '"allow" } }`';
+  const own = 'This harness does not write that file.';
+
+  if (Array.isArray(config.permissions)) {
+    const effect = v2Effect(config.permissions, home);
+    if (effect === 'allow') return null;
+    return (
+      '📌 In `opencode.json`, the last `permissions` rule for ' +
+      '`external_directory` that matches `~/.claude/reference/` says ' +
+      `**${effect}**, and in opencode V2 the last match wins. ${why} Add, ` +
+      'after it, `{ "action": "external_directory", "resource": ' +
+      `"~/.claude/reference/*", "effect": "allow" }\`. ${own}`
+    );
+  }
+
+  const external = config.permission?.external_directory;
   // A blanket allow covers it, and so does any rule naming the reference path.
   if (external === 'allow') return null;
   if (
@@ -139,15 +171,62 @@ export function opencodePermission(config) {
     )
   )
     return null;
+  if (config.permission !== undefined)
+    return (
+      '📌 `opencode.json` has no rule letting agents read ' +
+      '`~/.claude/reference/**`, and in opencode V1 ' +
+      `\`permission.external_directory\` defaults to **ask**. ${why} Add ` +
+      `${v1Rule}. ${own}`
+    );
   return (
     '📌 `opencode.json` has no rule letting agents read ' +
-    '`~/.claude/reference/**`, and `permission.external_directory` defaults ' +
-    'to **ask**. The `security` agent is told to cite the ASVS sheet from ' +
-    'there, so without it that agent stops to ask mid-review — or reviews ' +
-    'without the sheet and says so. Add ' +
-    '`"permission": { "external_directory": { "~/.claude/reference/**": ' +
-    '"allow" } }`. This harness does not write that file.'
+    '`~/.claude/reference/`. On opencode V2 none is needed — ' +
+    '`external_directory` is allowed by default — and this can be ignored. ' +
+    `On V1 it defaults to **ask**: ${why} Add ${v1Rule}. ${own}`
   );
+}
+
+// What V2 decides for the sheet: the effect of the last `external_directory`
+// rule whose resource matches it, or the base policy's allow when none does.
+// The path is the one opencode compares, with forward slashes, and a leading
+// `~` or `$HOME` in a rule is expanded the way opencode does on load.
+function v2Effect(rules, home) {
+  const slashes = (path) => path.replaceAll('\\', '/');
+  const root = slashes(home).replace(/\/+$/, '');
+  const sheet = `${root}/.claude/reference/security/asvs.md`;
+  const expand = (resource) =>
+    slashes(resource).replace(/^(~|\$HOME)(?=\/|$)/, () => root);
+  return rules.reduce(
+    (effect, rule) =>
+      typeof rule?.action === 'string' &&
+      typeof rule.resource === 'string' &&
+      typeof rule.effect === 'string' &&
+      wildcard(rule.action, 'external_directory') &&
+      wildcard(expand(rule.resource), sheet)
+        ? rule.effect
+        : effect,
+    'allow',
+  );
+}
+
+// V2 wildcards match the whole value: `*` is any run of characters, `/`
+// included, and `?` exactly one. Case is ignored as on Windows; elsewhere that
+// can only take a rule differing in case for a match, never invent a notice.
+const wildcard = (pattern, value) =>
+  new RegExp(
+    `^${pattern
+      .replace(/[.+^${}()|[\]\\]/g, '\\$&')
+      .replaceAll('*', '.*')
+      .replaceAll('?', '.')}$`,
+    'i',
+  ).test(value);
+
+// V2 nests the servers under `mcp.servers`; V1 put them straight under `mcp`.
+export function opencodeServers(config) {
+  const mcp = config?.mcp ?? {};
+  const servers =
+    mcp.servers && typeof mcp.servers === 'object' ? mcp.servers : mcp;
+  return Object.keys(servers);
 }
 
 // Layer 1 tells every project to check documentation through Context7 (rule
@@ -158,7 +237,8 @@ export function context7Notice({ claude, opencode }) {
   const lacks = (names) => names && !names.some((n) => /context7/i.test(n));
   const missing = [
     lacks(claude) && '`~/.claude.json` (`mcpServers`)',
-    lacks(opencode) && '`~/.config/opencode/opencode.json` (`mcp`)',
+    lacks(opencode) &&
+      '`~/.config/opencode/opencode.json` (`mcp.servers`, or `mcp` on V1)',
   ].filter(Boolean);
   if (!missing.length) return null;
   return (
@@ -363,23 +443,17 @@ export function planSync({
 
   // Only where opencode is actually being written to: telling a Claude-only
   // machine to edit a config it does not have is the noise this file avoids.
-  const permission = opencodePermission(
-    targets.includes('opencode')
-      ? readJson(join(dest, '.config', 'opencode', 'opencode.json'))
-      : null,
-  );
+  const opencode = targets.includes('opencode')
+    ? readJson(join(dest, '.config', 'opencode', 'opencode.json'))
+    : null;
+  const permission = opencodePermission(opencode, dest);
   if (permission) foreign.push(permission);
 
   // `~/.claude.json` sits at the home root, not under `.claude`. Only the
   // server names are looked at: the entries may carry an API key.
   const context7 = context7Notice({
     claude: Object.keys(readJson(join(dest, '.claude.json')).mcpServers ?? {}),
-    opencode: targets.includes('opencode')
-      ? Object.keys(
-          readJson(join(dest, '.config', 'opencode', 'opencode.json')).mcp ??
-            {},
-        )
-      : null,
+    opencode: opencode && opencodeServers(opencode),
   });
   if (context7) foreign.push(context7);
 
