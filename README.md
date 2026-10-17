@@ -218,20 +218,20 @@ until someone follows it.
 | Agent teams                | <https://code.claude.com/docs/en/agent-teams>              |
 | Prompt caching             | <https://code.claude.com/docs/en/prompt-caching>           |
 
-### opencode
+### opencode (V2)
 
-| Topic               | URL                                     |
-| ------------------- | --------------------------------------- |
-| Index               | <https://opencode.ai/docs/>             |
-| Agents              | <https://opencode.ai/docs/agents/>      |
-| Skills              | <https://opencode.ai/docs/skills/>      |
-| Commands            | <https://opencode.ai/docs/commands/>    |
-| Rules (`AGENTS.md`) | <https://opencode.ai/docs/rules/>       |
-| Permissions         | <https://opencode.ai/docs/permissions/> |
-| MCP (Context7)      | <https://opencode.ai/docs/mcp-servers/> |
-| Plugins             | <https://opencode.ai/docs/plugins/>     |
-| General config      | <https://opencode.ai/docs/config/>      |
-| Tools               | <https://opencode.ai/docs/tools/>       |
+| Topic                      | URL                                         |
+| -------------------------- | ------------------------------------------- |
+| Index                      | <https://opencode.ai/v2/docs/>              |
+| Agents                     | <https://opencode.ai/v2/docs/agents/>       |
+| Skills                     | <https://opencode.ai/v2/docs/skills/>       |
+| Commands                   | <https://opencode.ai/v2/docs/commands/>     |
+| Instructions (`AGENTS.md`) | <https://opencode.ai/v2/docs/instructions/> |
+| Permissions                | <https://opencode.ai/v2/docs/permissions/>  |
+| MCP (Context7)             | <https://opencode.ai/v2/docs/mcp-servers/>  |
+| Plugins                    | <https://opencode.ai/v2/docs/plugins/>      |
+| General config             | <https://opencode.ai/v2/docs/config/>       |
+| Tools                      | <https://opencode.ai/v2/docs/tools/>        |
 
 ## The leak guard
 
