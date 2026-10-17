@@ -191,8 +191,7 @@ export function opencodePermission(config, home) {
 // The path is the one opencode compares, with forward slashes, and a leading
 // `~` or `$HOME` in a rule is expanded the way opencode does on load.
 function v2Effect(rules, home) {
-  const slashes = (path) => path.replaceAll('\\', '/');
-  const root = slashes(home).replace(/\/+$/, '');
+  const root = homeRoot(home);
   const sheet = `${root}/.claude/reference/security/asvs.md`;
   const expand = (resource) =>
     slashes(resource).replace(/^(~|\$HOME)(?=\/|$)/, () => root);
@@ -208,6 +207,10 @@ function v2Effect(rules, home) {
     'allow',
   );
 }
+
+const slashes = (path) => path.replaceAll('\\', '/');
+// The home with forward slashes and no trailing one, ready to prefix a path.
+const homeRoot = (home) => slashes(home).replace(/\/+$/, '');
 
 // V2 wildcards match the whole value: `*` is any run of characters, `/`
 // included, and `?` exactly one. Case is ignored as on Windows; elsewhere that
@@ -267,6 +270,45 @@ export function unmanagedMemory(present) {
     'loads them in every session — in a folder with no `AGENTS.md` they are ' +
     'the only ones it loads. Keep in it what must hold **without** a project; ' +
     'what a project needs arrives in its own `AGENTS.md`.'
+  );
+}
+
+// 🔴 The same file, from opencode's side. V1 loaded `~/.claude/CLAUDE.md` as
+// global rules whenever `~/.config/opencode/AGENTS.md` did not exist; V2
+// recognises `AGENTS.md` only, and reads that one plus whatever `instructions`
+// lists. So a machine that moves to V2 loses those rules in opencode **without
+// a word**, while Claude Code keeps loading them.
+//
+// Silent when `instructions` already names it. An entry counts the way V2
+// resolves it: `~/` from the home, an absolute path as written, a glob as a
+// glob. A relative entry is searched from the workspace up, never in the home,
+// so it does not count. Globs are matched with V2's permission wildcard, a
+// little more generous than a file glob: at worst that misses a notice, it
+// never invents one.
+//
+// ⚠️ Reported, never written (ADR-021): `opencode.json` is the owner's.
+export function opencodeMemory(present, config, home) {
+  if (!present || config === null) return null;
+  const root = homeRoot(home);
+  const file = `${root}/.claude/CLAUDE.md`;
+  const listed =
+    Array.isArray(config.instructions) &&
+    config.instructions.some(
+      (entry) =>
+        typeof entry === 'string' &&
+        wildcard(
+          slashes(entry).replace(/^~(?=\/)/, () => root),
+          file,
+        ),
+    );
+  if (listed) return null;
+  return (
+    '📌 opencode V2 does not load that `CLAUDE.md`: it reads ' +
+    '`~/.config/opencode/AGENTS.md` and what `instructions` lists in ' +
+    '`opencode.json`, and that list does not name it. V1 loaded it as a ' +
+    'fallback when there was no `~/.config/opencode/AGENTS.md`. For V2 to ' +
+    'follow those rules too, add `"instructions": ["~/.claude/CLAUDE.md"]`. ' +
+    'This harness does not write that file.'
   );
 }
 
@@ -436,9 +478,8 @@ export function planSync({
 
   // Read on every session and managed by nobody: it has to be named, or it is
   // a file nobody remembers is there.
-  const unmanaged = unmanagedMemory(
-    existsSync(join(dest, '.claude', 'CLAUDE.md')),
-  );
+  const memory = existsSync(join(dest, '.claude', 'CLAUDE.md'));
+  const unmanaged = unmanagedMemory(memory);
   if (unmanaged) foreign.push(unmanaged);
 
   // Only where opencode is actually being written to: telling a Claude-only
@@ -446,6 +487,9 @@ export function planSync({
   const opencode = targets.includes('opencode')
     ? readJson(join(dest, '.config', 'opencode', 'opencode.json'))
     : null;
+  const unloaded = opencodeMemory(memory, opencode, dest);
+  if (unloaded) foreign.push(unloaded);
+
   const permission = opencodePermission(opencode, dest);
   if (permission) foreign.push(permission);
 

@@ -11,6 +11,7 @@ import {
   driftNotice,
   foreignNotice,
   unmanagedMemory,
+  opencodeMemory,
   opencodePermission,
   opencodeServers,
   context7Notice,
@@ -572,6 +573,57 @@ test('the memory this harness does not manage is still named', () => {
 test('and nothing is said when there is none', () => {
   assert.equal(unmanagedMemory(false), null);
   assert.equal(unmanagedMemory(undefined), null);
+});
+
+// 🔴 V1 loaded `~/.claude/CLAUDE.md` when there was no opencode `AGENTS.md`;
+// V2 reads only its own `AGENTS.md` and `instructions`. Moving to V2 drops
+// those rules from opencode without a word, so the installer says it.
+test('🔴 opencode V2 not loading the global CLAUDE.md is told, with the fix', () => {
+  const said = opencodeMemory(true, {}, '/srv/u');
+  assert.match(said, /opencode V2 does not load that `CLAUDE\.md`/);
+  assert.match(said, /V1 loaded it as a fallback/);
+  assert.match(said, /"instructions": \["~\/\.claude\/CLAUDE\.md"\]/);
+  assert.match(said, /does not write that file/);
+  // An `instructions` list that names something else is still not it.
+  assert.match(
+    opencodeMemory(true, { instructions: ['CONTRIBUTING.md'] }, '/srv/u'),
+    /does not load/,
+  );
+});
+
+test('instructions that already name it, however written, silence it', () => {
+  const quiet = (entry, home = '/srv/u') =>
+    opencodeMemory(true, { instructions: [entry] }, home);
+  assert.equal(quiet('~/.claude/CLAUDE.md'), null);
+  assert.equal(quiet('/srv/u/.claude/CLAUDE.md'), null);
+  assert.equal(quiet('~/.claude/*.md'), null);
+  assert.equal(quiet('C:\\Users\\u\\.claude\\CLAUDE.md', 'C:\\Users\\u'), null);
+  // A relative entry is searched from the workspace up, never in the home.
+  assert.match(quiet('.claude/CLAUDE.md'), /does not load/);
+});
+
+// Nothing to say without the file, or without opencode on the targets.
+test('no CLAUDE.md or no opencode, no opencode notice', () => {
+  assert.equal(opencodeMemory(false, {}, '/srv/u'), null);
+  assert.equal(opencodeMemory(true, null, '/srv/u'), null);
+});
+
+// The real path: read from disk, and only where opencode is written.
+test('🔴 planSync tells opencode about the CLAUDE.md, and only to opencode', () => {
+  const dest = destWith({
+    '.claude/CLAUDE.md': '# mine',
+    '.config/opencode/opencode.json': JSON.stringify({ instructions: [] }),
+  });
+  const told = (targets) =>
+    planSync({ dest, read, targets }).foreign.join('\n');
+  assert.match(told(['claude', 'opencode']), /opencode V2 does not load/);
+  assert.doesNotMatch(told(['claude']), /opencode V2 does not load/);
+
+  writeFileSync(
+    join(dest, '.config', 'opencode', 'opencode.json'),
+    JSON.stringify({ instructions: ['~/.claude/CLAUDE.md'] }),
+  );
+  assert.doesNotMatch(told(['claude', 'opencode']), /does not load that/);
 });
 
 // 🔴 That an opencode agent can read `~/.claude/reference/` was measured in
