@@ -735,6 +735,50 @@
   and local settings files).
 - **Source:** <https://code.claude.com/docs/en/memory>, read 2026-09-21.
 
+## ADR-036 — Rule 8 stays exceptionable by the owner, after the agent asks; `layer1.md` is unchanged
+
+- **Status:** 🔶 proposed (2026-10-19)
+- **Decision:** When a project's `CLAUDE.md` carries its own commit-message rule
+  (another language, free format, no Conventional Commits), `/init-project`
+  keeps it as a declared exception to rule 8, with its reason and scope, **after
+  asking the owner**. Rule 14 keeps its list of what is never an exception
+  (security, AI traces, pushing) and does not grow: the language or format of
+  commit messages is not on it. Nothing in `layer1.md` changes.
+- **Reason:** Two failures were measured on 2026-10-18 and 2026-10-19 with a
+  small model. One run migrated «always sign with `Co-Authored-By`» as an
+  exception to rule 7, which is what the list in rule 14 exists to stop. After
+  that was fixed, another run dropped «commit messages in Spanish» together with
+  it, calling it a contradiction of layer 1 — a legitimate rule of the owner's,
+  lost without asking. Both come from the same missing line between a rule the
+  owner may waive and one they may not, and that line is already rule 14.
+- **Rejected:** making rule 8 non-exceptionable in `layer1.md`, which would
+  force every project to rewrite its history convention to adopt the harness;
+  adding commit language to the never-exception list, for the same reason;
+  letting the agent drop the rule as «contradicts layer 1».
+
+## ADR-037 — The no-Node check is a text rule in the commands, not a hook
+
+- **Status:** 🔶 proposed (2026-10-19)
+- **Decision:** `commands/init-project.md` and `commands/propagate.md` open with
+  a Step 0 that runs `node -v` and, if it fails, stops with a fixed sentence and
+  writes nothing: no later step, no `pnpm` or `npx` in its place, no file by
+  hand. A test guards both commands (a `node *` entry in `bash-allow`, a Step 0
+  before Step 1, the check, the stop and the ban on a hand-made substitute).
+  `node -v` is used rather than `command -v node` because the commands'
+  allow-list has `node *` and not `command`.
+- **Reason:** An agent session takes its Node from the terminal that launched
+  it, not from the project, so a session started with no Node answers «command
+  not found» and the model improvises. _Measured 2026-10-19 with `qwen3.7-plus`
+  and `PATH=/usr/bin:/bin`: without Step 0, none of 3 runs stopped and they
+  changed 4, 1 and 0 files; with it, 3 of 3 stopped with the sentence and
+  changed none._ Three runs against three, one model, the command given as an
+  attachment and not as a subtask: it shows the text works, it does not prove it
+  in the TUI.
+- **Rejected:** a hook or plugin, which is deterministic but is code outside the
+  harness, differs between Claude Code and OpenCode, and the harness writes one
+  file per project and installs no hooks; a check inside the script, because the
+  script is Node and never runs when there is none.
+
 <!-- Guidance, copied from the harness's DECISIONS template when this file
      was created. **Nothing rewrites it**: it is not a managed block, so
      edit it freely, or delete it once the habit is yours.
