@@ -252,8 +252,8 @@ than by list, or the day commits start coming from a machine that has no list.
 - `AGENTS.md` — how work is done here (this file)
 - `docs/DECISIONS.md` — why it is the way it is
 - `SECURITY.md` — how a flaw is reported, and what is worth reporting
-- **none of the three yet.** This repo has had no session close with work half
-  done, and its plan lives in the private notebook. Each is created the day its
+- **No `SESSION.md` yet.** This repo has had no session close with work half
+  done, and its plan lives in the private notebook. It is created the day its
   row in the table below becomes true, not before
 
 **When to create the next one.** Each template is opened when the file is
