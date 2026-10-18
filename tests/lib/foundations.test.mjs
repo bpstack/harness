@@ -84,6 +84,52 @@ test('a CI that does not invoke the check is worse than none in one way', () => 
 });
 
 // 🔴 A green verify on your machine only proves your machine.
+// Rule 11, found missing in two runs on 2026-10-18 that never mentioned it.
+// Only a repo with dependencies is asked: one without has nothing to age.
+const withDeps = { ...full, dependencies: { express: '^4.19.2' } };
+const run = (workspace, pkg = withDeps) =>
+  foundations({
+    pkg,
+    ci: 'invokes-verify',
+    exists: (n) =>
+      ['.gitattributes', '.nvmrc'].includes(n) ||
+      (n === 'pnpm-workspace.yaml' && workspace !== null),
+    read: (n) => (n === 'pnpm-workspace.yaml' ? workspace : null),
+  });
+
+test('🔴 a repo with dependencies and no minimumReleaseAge is told', () => {
+  const none = run(null).missing.join('\n');
+  assert.match(none, /`minimumReleaseAge` is not set: there is no/);
+  const other = run('packages: []\n').missing.join('\n');
+  assert.match(other, /not set in `pnpm-workspace\.yaml`/);
+  assert.deepEqual(run('minimumReleaseAge: 10080\n').missing, []);
+});
+
+test('a commented-out minimumReleaseAge is not a setting', () => {
+  const out = run('# minimumReleaseAge: 10080\npackages: []\n').missing;
+  assert.equal(out.length, 1);
+});
+
+test('a repo with no dependencies is not asked for minimumReleaseAge', () => {
+  const res = run(null, full);
+  assert.deepEqual(res.missing, []);
+  assert.ok(res.skipped >= 1, 'the check should count as skipped');
+});
+
+test("🔴 pnpm's own placeholder in the workspace file is an open finding", () => {
+  const out = run(
+    'minimumReleaseAge: 10080\nallowBuilds:\n  esbuild: set this to true or false\n',
+  ).missing.join('\n');
+  assert.match(out, /pnpm left a placeholder/);
+  assert.match(out, /esbuild: set this to true or false/);
+  // The same words in a comment are documentation, not a pending choice.
+  assert.deepEqual(
+    run('minimumReleaseAge: 10080\n# esbuild: set this to true or false\n')
+      .missing,
+    [],
+  );
+});
+
 test('a .env is named, because CI will not have it', () => {
   const { missing: out } = foundations({
     pkg: full,
@@ -212,18 +258,19 @@ test('an `.nvmrc` that names no number is not compared', () => {
 // is not a measurement, and it sat next to the misses lending them credibility.
 test('the count is what ran, and what cannot run is not a pass', () => {
   const bare = foundations({ pkg: null, ci: null, exists: nothing });
-  assert.equal(bare.checked + bare.skipped, 9);
+  assert.equal(bare.checked + bare.skipped, 11);
   assert.ok(bare.skipped > 0, 'a repo with no manifest skips checks');
   assert.equal(bare.checked, 3);
 
   const whole = foundations({
-    pkg: full,
+    pkg: withDeps,
     ci: 'invokes-verify',
-    exists: has('.gitattributes', '.nvmrc'),
-    read: () => '24\n',
+    exists: has('.gitattributes', '.nvmrc', 'pnpm-workspace.yaml'),
+    read: (n) =>
+      n === 'pnpm-workspace.yaml' ? 'minimumReleaseAge: 10080\n' : '24\n',
   });
   assert.equal(whole.skipped, 0);
-  assert.equal(whole.checked, 9);
+  assert.equal(whole.checked, 11);
 });
 
 // 🔴 Windows: without `run`, pnpm falls through to the shell when no script of
