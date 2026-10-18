@@ -21,6 +21,18 @@ harness itself.
 second set of rules next to the project's own, and those two have never met.
 That reconciliation is this command.
 
+## Step 0 — Is there a Node to run it with?
+
+Run `node -v` before anything else. The script is a Node script, and a session
+does not get its Node from the project but from the terminal that launched it
+(rule 9).
+
+🔴 **If it fails, stop.** The first line of your reply is: _«No Node in this
+session: the script cannot run. Start the agent from a terminal that already has
+Node, and run this again.»_ Then nothing else: no step below, no other tool in
+its place (`pnpm`, `npx`), and **no file written by hand** to stand in for what
+the script writes.
+
 ## Step 1 — Find the harness, then run it dry
 
 `<harness>` is not something to know by heart — it differs per machine. Resolve
@@ -191,13 +203,13 @@ so here you notice them by reading. **Report each one, then ask** — rule 4 say
 the AI **proposes** and the owner decides, and reporting without asking leaves
 them the decision plus the duty to remember it.
 
-**Same shape as step 8 of `/init-project`**, and the same limits:
-`.gitattributes` offered directly, a pinned version and `packageManager`
-**asked** rather than deduced, the CI **last** because it needs the other three,
-and `verify` **never offered blind** — what is offered there is running the
-candidates. Nothing is written without being told to in that exchange, and what
-is not authorised goes to `docs/SESSION.md` rather than to a report that dies
-with the session.
+**Same shape as `~/.claude/reference/init-project/foundations.md`**, and the
+same limits: `.gitattributes` offered directly, a pinned version and
+`packageManager` **asked** rather than deduced, the CI **last** because it needs
+the other three, and `verify` **never offered blind** — what is offered there is
+running the candidates. Nothing is written without being told to in that
+exchange, and what is not authorised goes to `docs/SESSION.md` rather than to a
+report that dies with the session.
 
 📌 **A missing foundation is a finding, not a contradiction.** It does not go in
 the reconciliation counts and it is not a rule the owner is choosing to break:

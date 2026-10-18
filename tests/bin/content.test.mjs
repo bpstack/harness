@@ -67,6 +67,42 @@ test('🔴 no path to the shipped artefacts travels without its base', () => {
 // "Permission denied: shell", and shipped a level-3 review with no citation
 // while the sheet was in place. Any such agent that sends itself to the shared
 // reference has to say how to look: with the read tool.
+// A command that runs a Node script and does not say what to do when there is
+// no Node leaves the agent to improvise. The check is `node -v`, and it has to
+// fit the command's own allow-list: a denied check says nothing about Node.
+test('🔴 a command that runs a Node script starts by checking there is a Node', () => {
+  for (const file of ['init-project.md', 'propagate.md']) {
+    const text = read('commands', file);
+    assert.match(
+      text,
+      /^\s*-\s+node \*\s*$/m,
+      `commands/${file}: no node * in bash-allow`,
+    );
+    const step0 = text.indexOf('## Step 0');
+    const step1 = text.indexOf('## Step 1');
+    assert.ok(
+      step0 !== -1 && step0 < step1,
+      `commands/${file} has no Step 0 before Step 1.`,
+    );
+    const body = text.slice(step0, step1);
+    assert.match(
+      body,
+      /`node -v`/,
+      `commands/${file}: step 0 never runs node -v`,
+    );
+    assert.match(
+      body,
+      /If it fails, stop/,
+      `commands/${file}: step 0 does not say to stop.`,
+    );
+    assert.match(
+      body,
+      /no file written by hand/,
+      `commands/${file}: step 0 does not forbid a hand-made substitute.`,
+    );
+  }
+});
+
 test('🔴 an agent with a restricted shell checks the reference with the read tool', () => {
   for (const file of readdirSync(join(REPO, 'agents'))) {
     const text = read('agents', file);
