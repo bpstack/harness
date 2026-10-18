@@ -118,10 +118,12 @@ test('the report names the foundations layer 1 asks for and the repo lacks', () 
   // of being counted as a pass — so that tail is part of the sentence.
   assert.match(
     out,
-    /Foundations: \d+ of \d+ missing(; \d+ does not apply)?\. Reported, not touched:/,
+    /Foundations: \d+ of \d+ missing(; \d+ (?:does|do) not apply)?\. Reported, not touched:/,
   );
   assert.match(out, /`\.gitattributes` is missing/);
   assert.match(out, /Node version is not pinned/);
+  // The output is what is read right before acting, so it names the guide.
+  assert.match(out, /read \S+\/init-project\/foundations\.md before acting/);
   // Reported, not touched: nothing of the sort is created.
   assert.equal(existsSync(join(dir, '.gitattributes')), false);
   assert.equal(existsSync(join(dir, '.nvmrc')), false);
@@ -131,6 +133,7 @@ test('a repo with its foundations in place is not nagged', () => {
   const dir = repo();
   writeFileSync(join(dir, '.gitattributes'), '* text=auto eol=lf\n');
   writeFileSync(join(dir, '.nvmrc'), '24\n');
+  writeFileSync(join(dir, 'pnpm-workspace.yaml'), 'minimumReleaseAge: 10080\n');
   writeFileSync(
     join(dir, 'package.json'),
     JSON.stringify({
@@ -149,9 +152,11 @@ test('a repo with its foundations in place is not nagged', () => {
   // never having looked. Reported from a real repo on 2026-09-07.
   const out = run(dir);
   assert.doesNotMatch(out, /missing\. Reported/);
+  // Nothing to act on, so no guide is pointed at.
+  assert.doesNotMatch(out, /init-project\/\S+\.md before acting/);
   assert.match(
     out,
-    /Foundations: \d+ checked, none missing(; \d+ does not apply)?\./,
+    /Foundations: \d+ checked, none missing(; \d+ (?:does|do) not apply)?\./,
   );
 });
 
@@ -177,6 +182,7 @@ test('🔴 a file git ignores is named before it is written', () => {
   assert.match(out, /Dry run\. Nothing written\./);
   // And it never offers to fix someone else's `.gitignore` on its own account.
   assert.match(out, /do not edit their `\.gitignore` on your own account/);
+  assert.match(out, /read \S+\/init-project\/gitignore\.md before acting/);
 });
 
 // A guard that only ever fires is a guard nobody can trust: this is the other
@@ -220,6 +226,10 @@ test('🔴 a CLAUDE.md carrying its own rules is reported, not overwritten', () 
   // 🔴 And the provenance heading, because nothing else makes a second run a
   // no-op: without it the same content migrates twice.
   assert.match(out, /under a heading naming where it came from/);
+  assert.match(
+    out,
+    /read \S+\/init-project\/claude-migration\.md before acting/,
+  );
   // The file is the project's: **this script** writes over nothing.
   assert.equal(
     readFileSync(join(dir, 'CLAUDE.md'), 'utf8'),

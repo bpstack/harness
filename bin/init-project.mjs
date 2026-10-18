@@ -176,6 +176,13 @@ function isUntouchedPointer(text) {
 // Written as is — cleaning the template left a blank line behind.
 const POINTER_TEXT = '@AGENTS.md\n';
 
+// The on-demand guides the command points at. Each warning below names its
+// guide too: the command is read once, but this output is read right before
+// acting.
+const GUIDE_DIR = '~/.claude/reference/init-project';
+export const guideLine = (file) =>
+  `  → read ${GUIDE_DIR}/${file} before acting on this`;
+
 // What is wrong with a `CLAUDE.md` that already exists. Only an existing one:
 // the file this run creates is born a one-line pointer, inside the repo.
 //
@@ -297,6 +304,7 @@ export function report({
         'Reported, not touched:',
     );
     for (const m of missing) lines.push(`  · ${m}`);
+    lines.push(guideLine('foundations.md'));
   } else if (checked) {
     lines.push(
       '',
@@ -558,7 +566,8 @@ Evidence: ${manager.evidence}. Nothing was written.`,
   }
   for (const line of pointerNotices)
     console.log(`
-🔴 ${line}`);
+🔴 ${line}
+${guideLine('claude-migration.md')}`);
   if (ignored.length) {
     console.log(
       `\n🔴 git ignores ${ignored.length === 1 ? 'one of the files' : `${ignored.length} of the files`} this writes, so ${ignored.length === 1 ? 'it does' : 'they do'} not travel:`,
@@ -575,7 +584,8 @@ Evidence: ${manager.evidence}. Nothing was written.`,
       '  The file lands on this machine and is absent on every clone, with no\n' +
         '  error on either side. Ask the owner, with the line above in front of\n' +
         '  them, whether the pattern goes or the harness stays local here — and\n' +
-        '  do not edit their `.gitignore` on your own account.',
+        '  do not edit their `.gitignore` on your own account.\n' +
+        guideLine('gitignore.md'),
     );
   }
 
@@ -603,7 +613,8 @@ Evidence: ${manager.evidence}. Nothing was written.`,
         '  Skills rebuild **from that lock**, so ignoring it leaves every other\n' +
         '  machine rebuilding something else, or nothing. `.claude/` and\n' +
         '  `.agents/` are the two that stay ignored. Removing the pattern is the\n' +
-        "  owner's call, and a declared exception is a legitimate answer.",
+        "  owner's call, and a declared exception is a legitimate answer.\n" +
+        guideLine('gitignore.md'),
     );
   }
 

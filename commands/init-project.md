@@ -20,6 +20,19 @@ owner can answer.
 🔴 **The generator never claims to be done, and neither do you.** What it
 reports is the work — not a formality to tidy up.
 
+## Step 0 — Is there a Node to run it with?
+
+Run `node -v` before anything else. The generator is a Node script, and a
+session does not get its Node from the project but from the terminal that
+launched it (rule 9).
+
+🔴 **If it fails, stop.** The first line of your reply is: _«No Node in this
+session: the generator cannot run. Start the agent from a terminal that already
+has Node, and run this again.»_ Then nothing else: no step below, no other tool
+in its place (`pnpm`, `npx`), and **no file written by hand** to stand in for
+what the generator writes. A hand-made substitute looks like the real output,
+which is why it is worse than an honest stop.
+
 ## Step 1 — Find the harness, then run it dry
 
 `<harness>` is not something to know by heart — it differs per machine. Resolve
@@ -113,215 +126,25 @@ reference, you do not cite it_ — one floor down.
 It is written here because the alternative, measured, is a false sentence
 carrying today's date.
 
-### If it says `CLAUDE.md` is not a pointer
+🔴 **The guides named below are opened with the read tool, never with the
+shell.** They reach `~/.claude/reference/init-project/` with `sync-global`. If a
+guide is not there, **stop on that warning, tell the owner it is not deployed
+and that `sync-global` has to be run again, and do not act on it from memory**:
+the procedure lives only in the guide.
 
-🔴 **A `CLAUDE.md` is a pointer when it holds the line `@AGENTS.md`.** That is
-the whole test, and it is the one the generator applies. **Content specific to
-Claude Code may sit below that line and the file is still a pointer** — the
-mould ships that way. What fails the test is the `@` being absent, because then
-the file imports nothing.
+### If the generator warns about the existing `CLAUDE.md`
 
-⚠️ **Do not read this as «`CLAUDE.md` must hold one line and nothing else».**
-That is stricter than what the code checks, and the strict reading is the
-expensive one: it turns the question into "migrate everything or refuse", so a
-project with valuable content in its `CLAUDE.md` declares a standing exception
-against the import — and loses `AGENTS.md` entirely to keep prose the import
-never threatened. _Found on 2026-09-17 in a repo that had declared exactly that,
-six weeks earlier._
-
-When `CLAUDE.md` holds **rules** instead, the repo has two sources — and 🔴
-**the damage is not the duplication, it is the asymmetry**: `CLAUDE.md` is read
-only by Claude Code, while `AGENTS.md` is the standard every other tool reads.
-Two files that drift do not error; they make the repo behave differently
-depending on which harness opened it.
-
-**So there are two separate things to fix, and they have different prices:**
-
-| What is wrong               | What it costs to fix                                           |
-| --------------------------- | -------------------------------------------------------------- |
-| **the import line is gone** | **one line at the top.** Nothing moves, nothing is lost        |
-| rules live in `CLAUDE.md`   | a migration: content moves, and that is the owner's to approve |
-
-🔴 **Never bundle them.** The import is not a step of the migration and does not
-wait for it: **a `CLAUDE.md` sitting there suppresses `AGENTS.md`**, so without
-the import line everything layer 1 wrote — the security section included — is
-invisible to the tool it was written for.
-
-⚠️ **And the mechanism is the opposite of what it looks like.** Claude Code
-reads `AGENTS.md` on its own from **v2.1.277**, but **only where no `CLAUDE.md`
-or `CLAUDE.local.md` sits in the working directory or above it**. So the file
-this harness writes is precisely what turns that off, and the import is what
-puts it back. A repo with no `CLAUDE.md` at all is read fine on a current
-version; one with an importless `CLAUDE.md` is not. Offer the line on its own,
-first, and say what it costs, which is nothing.
-
-**A short `CLAUDE.md` is not automatically a pointer.** Only `@AGENTS.md`
-imports; a sentence saying "read AGENTS.md first" merely asks the agent to
-comply. _Measured once: the pointer reached the session's context, `AGENTS.md`
-did not, and the whole session ran without it despite being told to._
-
-**Show the whole move, ask, and then perform it.** Moving content is destructive
-and this is someone else's repo, so the authorisation is explicit and it is
-theirs — but reporting and going quiet leaves them the decision **and the duty
-to remember it**, and a report dies with the session. Rule 4 is proposing, not
-abstaining.
-
-⚠️ **This instruction was the other way round until 2026-09-17** — _«propose the
-migration, do not perform it»_ — and what happened in testing is that the
-migration was carried out anyway, with permission asked first. The instruction
-was the thing that was wrong, not the behaviour: a `CLAUDE.md` left holding
-rules is the asymmetry this section exists to end, and stopping one step short
-leaves it in place.
-
-🔴 **The order cannot be reversed:** show the dry run → write into `AGENTS.md` →
-verify it landed → **only then** shrink `CLAUDE.md`. Shrinking first and
-trusting yourself to paste it back is how a file gets lost.
-
-**The dry run shows the move whole**: every line that leaves `CLAUDE.md`, where
-each one lands, and what the file is left holding. A summary of a move is not a
-dry run — the point is that they read the text before it travels, because it is
-theirs.
-
-| What you find                          | What you do, once authorised                             |
-| -------------------------------------- | -------------------------------------------------------- |
-| the two files are identical            | `CLAUDE.md` becomes the pointer — nothing is lost        |
-| `CLAUDE.md` has what `AGENTS.md` lacks | move that content in, **outside the marks**, then shrink |
-| they contradict each other             | the same one-at-a-time pass `propagate` uses             |
-
-**Two findings change the question entirely, and either can arrive with any of
-the above:**
-
-- **`CLAUDE.md` is not in git.** Then its content has never left this machine,
-  and moving it into `AGENTS.md` **publishes it**. Ask whether the repo is
-  public — **do not look it up**: that ties the command to a tool being
-  installed and authenticated, and a failed lookup reads as "private", which is
-  the expensive way to be wrong. The owner knows. And offer the fourth exit,
-  usually the right one: **split it in two** — what can be public goes in, the
-  rest stays where it is.
-- **`CLAUDE.md` is a symbolic link.** 🔴 **Refuse the migration and say so
-  before anything else**, then propose a real file. This is the one case that is
-  not a judgement call: what you read through a link and what git stores are two
-  different things, so a migration here moves content you cannot be sure you
-  read. Git stores a link as a special entry; where it cannot create one
-  —Windows without developer mode— it materialises **a text file containing the
-  path**, which the harness then reads as its whole ruleset. No error, no
-  warning.
-
-### What migrates arrives under a heading that says where it came from
-
-🔴 **Without it the operation is not idempotent.** A second run has no way to
-tell migrated content from the project's own, so it migrates it again and the
-file ends up holding it twice. The heading is what makes the second run a no-op,
-and it is the only thing that does — nothing else in this flow remembers that a
-migration happened.
-
-Append it at the **end of `AGENTS.md`**, outside the marks, exactly like this:
-
-```markdown
-## From CLAUDE.md — migrated 2026-09-17
-
-_Everything below was moved out of `CLAUDE.md`, which is now a pointer._
-```
-
-**Before migrating, look for that heading.** If it is there, the content under
-it is already migrated: compare and move only what is new, and say in the report
-that this is a second pass.
-
-⚠️ **And this append does not go through the mark checker.** The generator
-refuses a file whose marks do not pair, but that guard runs on the block it
-writes — **you** are writing at the end of the file, outside it. Check the
-`layer1` marks pair before appending, and stop if they do not: a file with
-unpaired marks cannot be read reliably by the thing that comes next.
-
-### If layer 1 and what you are migrating disagree
-
-**Layer 2 wins** — the project's own rule beats the harness's — **and it is
-reported**, pointing at **rule 18**: the exception is declared, not left
-implicit.
-
-🔴 **Once it is declared, the warning stops.** Say it once, in the run where the
-conflict appears, and never again for a rule already carrying its declared
-exception. A warning that does not go away when you obey it is how a reader
-learns to skip every other one.
-
-🔴 **But a declared exception silences the rule it declares, not everything near
-it.** _Measured on 2026-09-17:_ a repo declared that its `CLAUDE.md` keeps its
-own content, that exception was honoured — correctly — and the missing
-`@AGENTS.md` went unmentioned with it. The run wrote a security section into an
-`AGENTS.md` that **no Claude Code session loads**, and said nothing, because one
-exception had covered the whole subject.
-
-**So check what the exception actually covers before you go quiet.** Here that
-is two questions, not one: _may the content stay?_ — theirs, and already
-answered — and _is `AGENTS.md` imported at all?_ An exception about keeping
-content says nothing about the import line, and the two are independent: the
-line costs nothing and loses nothing, so it is still offered, once, on its own.
-
-⚠️ **And when the exception's own text rests on that confusion, say so plainly
-and leave it alone.** An exception written as _«it is not a pointer, its content
-stays»_ is answering a question the harness never asked. Point at the line that
-would satisfy both readings; do not edit their declaration, and do not raise it
-twice.
-
-**What moves is what belongs in `AGENTS.md`: rules, conventions, how work is
-done here** — the things every tool has to read. What is genuinely Claude Code's
-may stay below the import: that rule, and the warning against reading it as
-all-or-nothing, are stated once at the top of this step.
+When the report says the root `CLAUDE.md` is not a pointer or is a symbolic
+link, read **`~/.claude/reference/init-project/claude-migration.md`** before
+changing either file. That guide contains the full migration procedure and its
+publication, authorisation and idempotence checks. It is deployed by
+`sync-global` with the other on-demand guides.
 
 ### If it says git ignores one of the files
 
-The generator asked **git** — not the `.gitignore` — which of the files it is
-about to create fall under an ignore pattern, and printed the pattern with its
-line. **Act on it before `--apply`.**
-
-🔴 **This is the quietest of the failures.** The file lands here, so nothing
-breaks and nobody suspects; on the next clone it is simply absent, with no error
-on either side. _Measured on a real repo on 2026-09-08: the generator reported
-writing `CLAUDE.md` and `git status` never listed it._
-
-⚠️ **What an absent `CLAUDE.md` costs has shrunk, and not to zero.** Claude Code
-reads `AGENTS.md` on its own from **v2.1.277**, so a clone that lacks
-`CLAUDE.md` entirely is read correctly on a current version — an absent file is
-the one case the native path covers. What it does not cover is the sessions that
-cannot use it: a version below that, a provider that fetches no feature flags
-such as Bedrock, telemetry off, hooks disabled. There the clone reads no harness
-at all, and nothing says so. `docs/DECISIONS.md` under an ignore pattern has no
-such fallback.
-
-**Ask the owner, with the exact line in front of them:**
-
-> `.gitignore:34:CLAUDE.md` keeps `CLAUDE.md` out of git. Remove that pattern so
-> the harness travels, or keep this harness local to this machine?
-
-| Answer                | What you do                                                                                         |
-| --------------------- | --------------------------------------------------------------------------------------------------- |
-| remove the pattern    | show the line, edit `.gitignore`, re-run the dry run to confirm the warning is gone, then `--apply` |
-| keep it local         | **respect it.** Apply as is, and note in the harness that these files do not travel                 |
-| the pattern is needed | propose **narrowing** it (`docs/build/` rather than `docs/`) instead of deleting it                 |
-
-🔴 **A "no" is a legitimate answer, not an obstacle to work around.** Wanting
-the harness only on the machine it is written on is a real case — and a public
-repo whose owner keeps their `CLAUDE.md` out of it is another. Do not ask twice
-in the same session, and do not apply it anyway.
-
-🔴 **Never edit a `.gitignore` without being told to in that exact exchange.** A
-general permission to run this command is not permission to change what someone
-else's repo publishes.
-
-**And `skills-lock.json` is asked separately, because it is the other way
-round.** Rule 16 wants it **committed** while `.claude/` and `.agents/` stay
-ignored — skills rebuild from that lock, so hiding it leaves every other machine
-rebuilding something else, or nothing.
-
-⏱️ **Its timing is the point: the warning lands before step 6.** The lock does
-not exist yet, so removing the pattern now means it is **born versioned** rather
-than rescued afterwards. Raise it here, not once the skills are installed.
-
-_Measured on a real repo on 2026-09-08: `.claude/` and `.agents/` were ignored —
-correctly — and the lock was ignored too, which is the rule exactly backwards.
-Neither the foundations list nor the ignore check above had anything to say,
-because this script does not write that file._ A declared exception is a
-legitimate answer here too.
+Read **`~/.claude/reference/init-project/gitignore.md`** and act on it **before
+`--apply`**. Ask the owner with the exact pattern in front of them; never edit a
+`.gitignore` unasked, and treat `skills-lock.json` as a separate question.
 
 ## Step 4 — Ask the owner: the security level, its areas, and where the model goes wrong
 
@@ -416,6 +239,13 @@ with the answers that chose it. Write it in the format the destination already
 uses, born `🔶 proposed`. You are not settling anything: the mould already says
 only the owner moves an entry to `✅ accepted`.
 
+🔴 **If the file was born with the mould's placeholder entry
+(`ADR-001 — {{Title…}}`), fill that one in; do not append a second.** Two
+`ADR-001` break the numbering, and the `{{…}}` left behind reads as a real
+decision. The **Reason** cites what the owner answered about _this_ project, not
+the criteria of the level restated. _Measured on 2026-10-18: the placeholder
+stayed and a second `ADR-001` was appended below it._
+
 🔴 **A file born empty teaches that it may stay empty.** _Measured on
 2026-08-08: the decisions file was created with 40 lines and zero entries while
 two decisions had just been taken, the level among them — and they ended up as
@@ -430,8 +260,8 @@ and by then it has been quoted as a reason.
 ## Step 6 — Skills: hand this one to the owner, and wait
 
 🔴 **You do not run this step. Ask for it and stop until you have an answer.**
-**Rule 16 is what requires it, and nothing else in the flow triggers it**, so
-skipping it here means it never happens at all.
+Rule 16 requires it and nothing else in the flow triggers it, so skipping it
+here means it never happens.
 
 Ask the owner to run this in **their own terminal**, once dependencies are
 declared:
@@ -440,27 +270,14 @@ declared:
 npx autoskills --dry-run
 ```
 
-**Why theirs and not yours.** Two reasons, and both are the point:
+**Why theirs:** `npx` downloads a package (rule 4), and `autoskills` needs
+**Node ≥ 22.6** while an agent session cannot change its own shell's Node. It
+**proposes**; the owner decides what is installed. _Measured on 2026-08-08: one
+backend-patterns skill was installed almost everywhere, and almost nowhere had a
+backend._
 
-- `npx` **downloads a package**. Installing or fetching on your own account is
-  rule 4 broken, and a dry run that reaches the network is still a reach.
-- `autoskills` needs **Node ≥ 22.6**, and plenty of repos pin lower on purpose.
-  In an interactive shell the version manager's hook is loaded and switching is
-  one line —`fnm use 24`, then the command— while an agent session **cannot
-  change its own shell's Node** and has to go the long way round. The long way
-  round is a trap of its own; the owner's terminal simply does not have it.
-
-It **proposes**; the owner filters and decides what gets installed. It is run
-when a project starts and when a major technology enters — not by routine.
-_Measured on 2026-08-08: one backend-patterns skill was installed almost
-everywhere it was run, and almost nowhere had a backend._ The detector gets the
-language right and the role wrong, which is the whole reason the dry run exists.
-
-🔴 **The request goes at the TOP of your report, not among the findings.** You
-may finish the steps after this one — none of them depends on skills — but the
-ask must be the first thing read, not the last.
-
-**Three answers are legitimate, and one of them is "no".**
+🔴 **The request goes at the TOP of your report.** You may finish the later
+steps — none depends on skills.
 
 | Answer                      | What you do                                                     |
 | --------------------------- | --------------------------------------------------------------- |
@@ -468,34 +285,14 @@ ask must be the first thing read, not the last.
 | this project uses no skills | **accept it and say so.** Rule 16 only bites where skills exist |
 | not now                     | report it as pending, by name, and do not ask again today       |
 
-🔴 **What you may not do is continue as though you had asked.** _Measured on
-2026-08-08 in a project pinned to Node 20 to match its Dockerfile: the step
-failed on a version error and the run carried on as if nothing had happened._
-**A step that skips itself in silence is worse than one that is missing** — and
-a step whose answer nobody waited for is the same failure wearing a request.
+🔴 **What you may not do is continue as though you had asked.** A step that
+skips itself in silence is worse than one that is missing.
 
-### Check what it proposes against what you already measured
-
-🔴 **You read this project in steps 2 to 4. Use that.** Any proposal that
-**contradicts** what you measured is reported as **suspect**, with the
-`file:line` that contradicts it — never with an opinion. The owner still
-decides; what changes is that they decide with the evidence in front of them.
-
-**The detector reads what is declared, not what is used**, and that single
-sentence explains both of its results:
-
-| Repo, measured 2026-09-08 | Proposals | Verdict                                                                                                     |
-| ------------------------- | --------- | ----------------------------------------------------------------------------------------------------------- |
-| Astro, content-only       | 9         | 🔴 **4 false** — no backend, no Tailwind utility class in the source, TypeScript declared but not installed |
-| Next.js, real             | 12        | ✅ **12 true**, every one backed by the code                                                                |
-
-📐 **The same filter would have caught four there and none here** — which is
-what a filter has to do. One that fires where there is nothing to catch is not a
-filter, it is noise.
-
-⚠️ **What this does not do is veto.** A contradiction is a reason to look, not a
-verdict: a dependency declared and unused today may be the one going in
-tomorrow. **You mark it and hand it over. You do not drop it.**
+**Check each proposal against what you read in steps 2 to 4.** The detector
+reads what is declared, not what is used. One that **contradicts** the code is
+reported as **suspect** with the `file:line` that contradicts it — never an
+opinion. It is a reason to look, not a veto: mark it and hand it over, do not
+drop it.
 
 ## Step 7 — Verify, do not assume
 
@@ -511,80 +308,10 @@ than assuming.
 
 ## Step 8 — The foundations the generator listed
 
-If the report ended with **`Foundations missing`**, those lines are not about
-the file just written: they are about the project being able to work at all, and
-layer 1 demands four of them. Work through them **one at a time**, and:
-
-🔴 **Report, then ask — and do what is authorised.** Rule 4 says the AI
-**proposes** and the owner decides. Reporting and going quiet is a weaker
-reading: it leaves the owner the decision **and the duty to remember it**, and a
-report dies with the session. So the step ends with a question, not a list.
-
-**Ask them together, in one block, and say what each would take:**
-
-| Missing           | How it is offered                                                   |
-| ----------------- | ------------------------------------------------------------------- |
-| `.gitattributes`  | ✅ **directly** — fixed content, two lines, **only if absent**      |
-| `.nvmrc`          | ⚠️ **ask which major** — never deduced, never inherited             |
-| `packageManager`  | ⚠️ **ask** — and it edits their `package.json`                      |
-| `verify`          | 🔴 **not offered** — see below: the candidates have to be run first |
-| CI from the mould | ✅ **last of all** — it needs the three above, or it is born red    |
-
-🔴 **Nothing is written without being told to in that exchange**, a "no" is a
-legitimate answer and is not asked twice, and **what is not authorised goes to
-`docs/SESSION.md`** — not to the report, which nobody reads again.
-
-⚠️ **An existing `.gitattributes` is never rewritten.** It is the one file here
-whose content is fixed, which makes overwriting it look harmless — and it is
-not: those lines are the project's, and a rule you do not recognise is still a
-rule. When it is there, **say what it lacks** and leave it alone.
-
-⏱️ **And if the repo already has commits, the file alone changes nothing.** Git
-applies it to what it normalises from then on; everything already committed
-keeps the endings it went in with. That takes `git add --renormalize .`, **in a
-commit of its own** — it can touch every file in the repo, and mixed into
-another commit it makes the diff unreadable. Say it when you offer the file; do
-not run it unasked.
-
-⚠️ **`.nvmrc` is asked, never deduced — and an existing `engines.node` is not
-the answer.** It is the same number wearing a different hat: if it were right,
-there would be nothing to fix. The harness does not invent the major and does
-not inherit it. Offer what you can see, with its origin, and let the owner say
-the number.
-
-⚠️ **`packageManager` has no single right answer, so it is asked and not
-deduced.** The lockfile gives a **range**, not a version —
-`lockfileVersion: '9.0'` means pnpm 9 or 10. And `pnpm -v` **inside a repo
-reports the repo's pnpm, not the machine's**, because it self-medicates to
-`packageManager`: ask it **outside any repo** to learn what is really installed.
-Offer both numbers with their origin and let the owner pick.
-
-⚠️ **The `verify` candidates are candidates, not a chain.** The generator lists
-the scripts already in the repo because it cannot know which of them check
-anything — **the name misleads and the command does not**. Before proposing a
-`verify`, run each one and read what it does. Two things disqualify a candidate:
-
-- it **writes** instead of checking, whatever it is called;
-- it **exits 0 on a problem it reports itself** — `eslint` does exactly that on
-  "1 problem (0 errors, 1 warning)", so it needs `--max-warnings=0` first.
-
-A candidate that comes out red stays out **and is declared as a written
-exception**: a `verify` born red is ignored from day one, and so is the CI built
-on it.
-
-🔴 **So what is offered here is running the candidates, never writing the
-script.** No detector can know which of them checks anything without executing
-it, and a `verify` born green that verifies nothing is worse than none.
-
-⏱️ **And the CI goes last, after the three it depends on.** It reads `.nvmrc`,
-takes its pnpm from `packageManager` and calls `pnpm run verify`: without those
-it is red on arrival. _Measured on 2026-09-08 by walking into it — the CI was
-written first, in a repo that had none of the three, with this warning already
-in the generator's own output._
-
-📌 **A CI that exists is not a CI that checks.** If the report says the workflow
-does not invoke `verify`, say so plainly: what runs on that machine and what
-runs in CI are then two lists, and they drift.
+If the generator printed **`Foundations: N of M missing`**, read
+**`~/.claude/reference/init-project/foundations.md`** (same rule as step 3: read
+tool, and stop if it is not deployed) and follow it before proposing or changing
+anything. If it printed `none missing`, skip this step.
 
 ## Step 9 — If anything is left hanging, offer the fourth document
 
@@ -623,6 +350,12 @@ wrote it. Tell the owner to restart before relying on any of it.
 ## Output
 
 Report what happened, and be specific about what did not:
+
+🔴 **Follow the template below whole, section by section.** "Asked of the owner"
+and the rules you **dropped** (under "Changed outside the marks", with the
+reason) belong in the report itself, not only in `AGENTS.md`: the owner reads
+the report to know what moved and what they approved. A section with nothing in
+it says so in one line; it is not left out.
 
 🔴 **What you need from the owner goes FIRST, above everything you did.** A
 request printed under a list of findings is a request nobody acts on — measured
@@ -682,6 +415,9 @@ The agents and commands are not live until then.
 - **Report the steps that leave no file too.** A step that produces no artifact
   is the one that gets silently skipped, and the report is written by whoever
   skipped it — so name them explicitly rather than trusting the summary.
+- **What you drop is listed as dropped, with the reason**, and a hardcoded
+  secret or any other finding you saw while reading the code goes under "Still
+  open" — not only what the owner asked about.
 - Cite `path:line` when you refer to the project's code.
 - No AI or tool footprint in the output.
 - **The foundations are reported, then offered, and never installed unasked.**

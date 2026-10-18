@@ -226,6 +226,24 @@ test('a file in a subfolder is planned, keeping its subpath', () => {
   );
 });
 
+test('init-project on-demand guides are included in the shared reference', () => {
+  const { writes } = planSync({ dest: '/dest' });
+  const paths = writes.map((w) => w.path.replace(/\\/g, '/'));
+
+  for (const file of [
+    'claude-migration.md',
+    'foundations.md',
+    'gitignore.md',
+  ]) {
+    assert.ok(
+      paths.some((p) =>
+        p.endsWith(`/dest/.claude/reference/init-project/${file}`),
+      ),
+      `${file} was not planned for deployment`,
+    );
+  }
+});
+
 test('binary content survives the plan untouched', () => {
   const pdf = Buffer.from([0x25, 0x50, 0x44, 0x46, 0x00, 0xff, 0xfe]);
   const binary = (kind) =>
@@ -370,7 +388,9 @@ test('every top-level entry of reference/ is named by something outside it', () 
     const named = entry.isDirectory()
       ? readdirSync(join(refDir, entry.name)).some((f) =>
           readers.includes(f),
-        ) || readers.includes(`reference/${entry.name}`)
+        ) ||
+        readers.includes(`reference/${entry.name}`) ||
+        readers.includes(`~/.claude/reference/${entry.name}/`)
       : readers.includes(entry.name);
     assert.ok(
       named,
