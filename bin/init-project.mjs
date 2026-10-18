@@ -200,6 +200,24 @@ export const guideLine = (file) =>
 // weeks.
 export function pointerWarnings({ text, isSymlink, versioned }) {
   const out = [];
+  // The lines of a `CLAUDE.md` that carry a rule: not blank, not a heading.
+  // Counted here so that "every rule is accounted for" is a number the report
+  // can be held to. A run on 2026-10-19 dropped two of four and said it had
+  // listed them.
+  const inventory = (t) => {
+    const lines = String(t)
+      .split(/\r?\n/)
+      .map((l) => l.trim())
+      .filter((l) => l && !l.startsWith('#'));
+    const shown = lines.slice(0, 60).map((l, i) => `  ${i + 1}. ${l}`);
+    if (lines.length > 60)
+      shown.push(`  … and ${lines.length - 60} more: read the file.`);
+    return (
+      `\n\n  Lines to account for: ${lines.length}. Each ends in \`AGENTS.md\` ` +
+      'or in the dropped list with its reason, and the report says ' +
+      `"${lines.length} of ${lines.length}":\n${shown.join('\n')}`
+    );
+  };
   if (isSymlink) {
     out.push(
       '`CLAUDE.md` is a symbolic link. Where git cannot create one — Windows ' +
@@ -221,7 +239,8 @@ export function pointerWarnings({ text, isSymlink, versioned }) {
         'separate question with a separate price — show the move whole, get ' +
         'it authorised, write into `AGENTS.md` first, confirm it landed, and ' +
         'only then shrink this one; what migrates goes at the end, under a ' +
-        'heading naming where it came from, or a second run migrates it again.',
+        'heading naming where it came from, or a second run migrates it again.' +
+        inventory(text),
     );
   }
   // ⚠️ Only alongside a migration, which is the deliberate narrowing here: the

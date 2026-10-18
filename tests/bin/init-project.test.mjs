@@ -230,11 +230,28 @@ test('🔴 a CLAUDE.md carrying its own rules is reported, not overwritten', () 
     out,
     /read \S+\/init-project\/claude-migration\.md before acting/,
   );
+  // 🔴 The lines to account for are counted by the script, not left to the
+  // agent: a heading and a blank line are not rules, the one bullet is.
+  assert.match(out, /Lines to account for: 1\./);
+  assert.match(out, /"1 of 1"/);
+  assert.match(out, /1\. - never push on Fridays/);
   // The file is the project's: **this script** writes over nothing.
   assert.equal(
     readFileSync(join(dir, 'CLAUDE.md'), 'utf8'),
     '# Rules\n\n- never push on Fridays\n',
   );
+});
+
+test('the lines to account for are all counted, and a long file is cut at 60', () => {
+  const dir = repo();
+  const rules = Array.from({ length: 70 }, (_, i) => `rule ${i + 1}`);
+  writeFileSync(join(dir, 'CLAUDE.md'), `# Rules\n\n${rules.join('\n')}\n`);
+  const out = run(dir);
+  assert.match(out, /Lines to account for: 70\./);
+  assert.match(out, /"70 of 70"/);
+  assert.match(out, /60\. rule 60/);
+  assert.doesNotMatch(out, /61\. rule 61/);
+  assert.match(out, /… and 10 more: read the file\./);
 });
 
 // 🔴 Short is not the same as pointer. Only `@AGENTS.md` imports; a sentence

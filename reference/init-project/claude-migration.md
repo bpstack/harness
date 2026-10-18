@@ -166,6 +166,11 @@ because it states something the code contradicts (a URL), goes under "Changed
 outside the marks" as **dropped, with the reason** — never silently. It is still
 in git, but the owner reads the report, not the history.
 
+The script counts the lines to account for. Migrated plus dropped must add up to
+that number, and the report says so: «4 of 4». _Measured on 2026-10-19: a run
+dropped the `npm` rule and the `Co-Authored-By` signature, listed neither, and
+said it had listed them._
+
 🔴 **Once it is declared, the warning stops.** Say it once, in the run where the
 conflict appears, and never again for a rule already carrying its declared
 exception. A warning that does not go away when you obey it is how a reader
