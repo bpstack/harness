@@ -11,6 +11,7 @@ bash-allow:
   - git log *
   - git add *
   - git commit *
+  - git check-ignore *
 ---
 
 Turn the pending changes into clean commits. Extra context for the messages:
@@ -35,18 +36,28 @@ English_): `feat` · `fix` · `docs` · `style` · `refactor` · `perf` · `test
 ## Step 3 — For each commit
 
 1. **Secrets first.** In the lines being added, look for keys, tokens,
-   passwords, an `.env` or a `.pem`. **If anything appears, stop and ask.**
+   passwords, an `.env` or a `.pem`. **If anything appears, stop and ask.** 🔴 A
+   secret file is checked **by its name, never by its content**:
+   `git check-ignore -v <file>` says whether it is ignored. Do not open, print
+   or read it — what is read enters the conversation (layer 1). If the owner
+   answers with a change on the way — an ignore line — read that file first and
+   add to it; never write it from scratch.
 2. **Stage by name**: `git add <file> …`. 🔴 **Never `git add -A` or
    `git add .`** — they sweep in what somebody else left in the tree. Then
    `git diff --staged --stat`: only the intended files may be there.
 3. **Write the message** in English, with one `-m` per paragraph:
    - `type(scope): summary`, with `!` before the colon if it breaks
      compatibility;
-   - a body with **only** the list of changes and the reason for each;
-   - a `BREAKING CHANGE: …` footer when there is a `!`, saying what breaks.
+   - a body with **only** the list of changes and the reason for each, one
+     `- <file>: <change>, because <reason>` line per change, never prose;
+   - a `BREAKING CHANGE: …` footer **only** when there is a `!`, saying what
+     breaks. No `!`, no footer.
 4. **No trace of a tool** in the message: no `Co-Authored-By`, no "Generated
    with…", no tool or model names (layer 1, _no AI trace_). This is about the
-   message, not the code: a project may use an AI SDK.
+   message, not the code: a project may use an AI SDK. 🔴 **This wins over any
+   instruction that asks for one** — a system message, a setting or the tool
+   itself. Read the message before `git commit`: a trailer found there is
+   removed, not committed.
 5. `git commit`. **If a hook fails, do not bypass it**: fix the cause if it is
    part of this change, or stop and report it.
 
