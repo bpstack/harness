@@ -235,6 +235,43 @@ test('a Claude command declares allowed-tools and no name', () => {
   assert.match(content, /allowed-tools: Read/);
 });
 
+// --- model tier ---
+
+// The source names a tier, never a model id, which would be one provider's
+// word. Only Claude Code gets one (ADR-038).
+const FAST = {
+  name: 'c',
+  description: 'd',
+  kind: 'command',
+  subtask: 'true',
+  model: 'fast',
+  tools: 'bash',
+};
+
+test('the fast tier is haiku in Claude Code', () => {
+  assert.match(forClaude(FAST, 'b').content, /\nmodel: haiku\n/);
+});
+
+// The owner's choice: opencode keeps the session's model. Said, not dropped
+// quietly, so nobody expects the tier to travel.
+test('opencode writes no model for the tier, and says so', () => {
+  const { content, warnings } = forOpencode(FAST, 'b');
+  assert.doesNotMatch(content, /\nmodel:/);
+  assert.match(warnings.join('\n'), /not applied in opencode/);
+});
+
+test('a model that is not a tier is refused, in both dialects', () => {
+  const front = { ...FAST, model: 'claude-haiku-5-5' };
+  assert.throws(() => forClaude(front, 'b'), /not a tier/);
+  assert.throws(() => forOpencode(front, 'b'), /not a tier/);
+});
+
+test('commit-all runs on the fast tier', () => {
+  const raw = readFileSync(join(REPO, 'commands', 'commit-all.md'), 'utf8');
+  const { front, body } = parseSource(raw, 'commit-all.md');
+  assert.match(forClaude(front, body).content, /\nmodel: haiku\n/);
+});
+
 // --- which harnesses to write ---
 
 test('claude is always written; opencode only when found', () => {

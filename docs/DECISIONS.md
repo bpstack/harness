@@ -779,6 +779,43 @@
   file per project and installs no hooks; a check inside the script, because the
   script is Node and never runs when there is none.
 
+## ADR-038 — `commit-all` runs on Haiku in Claude Code; opencode keeps the session's model
+
+- **Status:** 🔶 proposed (2026-10-19)
+- **Decision:** A source may declare `model: fast`, a tier and never a model id.
+  Claude Code gets `model: haiku`, an alias that follows the latest Haiku.
+  opencode gets no model — the command runs on the session's, as before — and
+  `sync-global` says so under what does not travel. `commit-all` is the first,
+  after its text was reinforced: an attribution request loses to rule 7, a
+  secret file is checked by name with `git check-ignore` and never opened, a
+  file the owner asks to change is read before it is added to, the body is a
+  `- <file>: <change>, because <reason>` list, and no `!` means no
+  `BREAKING CHANGE` footer.
+- **Reason:** Measured 2026-10-18 and 2026-10-19 in a throwaway repo with four
+  logical blocks pending and an unignored `.env`, the model read from the API's
+  own record — a model asked which model it is answered wrong both ways. _Before
+  the reinforcement:_ Haiku signed one commit of four with `Co-Authored-By`,
+  following Claude Code's attribution reminder; `glm-5.3-flash-free` read the
+  `.env` and overwrote `.gitignore`; both wrote prose bodies. _After it:_ Haiku
+  in auto mode passed 3 of 3, and twice said in its report that the rule beat
+  the reminder; `glm-5.3-flash-free` passed 2 of 3, and the third put the README
+  in the `fix` commit. A command's `model` applies in both TUIs, auto mode
+  included, and **not** in `claude -p` or `opencode run`. A model that no longer
+  exists fails with `Model unavailable` rather than falling back. In opencode, a
+  command's model outside a subtask switches the whole session and stays (a
+  `model-switched` event; the next command failed on it).
+- **Rejected:** a model id in the source, which is one provider's word; for
+  opencode, a model per machine in an environment variable or a `.env`, because
+  the owner works from several machines and a value that lives on each one is a
+  value nobody knows — and a model id is no secret, so a `.env` would only hide
+  it; a free opencode model fixed in the repo, since every free one is free "for
+  a limited time" and glm passed 2 of 3, not 3 of 3; picking the first `-free`
+  model `opencode models` offers, which would swap in a model nobody measured;
+  the `use-haiku` and `commit` plugins from better-claude, which are code
+  outside the harness (ADR-037). _Decision of the owner, 2026-10-19._
+- **Source:** <https://code.claude.com/docs/en/slash-commands> and
+  <https://opencode.ai/v2/docs/commands>, read 2026-10-19.
+
 <!-- Guidance, copied from the harness's DECISIONS template when this file
      was created. **Nothing rewrites it**: it is not a managed block, so
      edit it freely, or delete it once the habit is yours.

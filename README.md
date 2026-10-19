@@ -82,6 +82,10 @@ Both harnesses are written from the same run — opencode wherever
 `~/.config/opencode` already exists, and with `--opencode` where it does not
 yet. See [Installing the agent CLIs](#installing-the-agent-clis).
 
+📌 **`/commit-all` runs on Haiku in Claude Code**, whatever model the session
+uses; in opencode it keeps the session's. Why, and what was measured: ADR-038 in
+[`docs/DECISIONS.md`](./docs/DECISIONS.md).
+
 ### 2. Start a project — once per repo, with `/init-project`
 
 ```

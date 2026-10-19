@@ -4,6 +4,7 @@ description:
   Group the pending changes into atomic Conventional Commits, and never push
 kind: command
 subtask: true
+model: fast
 tools: bash, read, grep
 bash-allow:
   - git status *
