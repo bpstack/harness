@@ -120,20 +120,40 @@ after.
 _Trigger: any migration of a list-valued setting. Moved out of layer 1 on
 2026-09-17._
 
-## `minimumReleaseAge` does not fail an install: it quietly picks an older one
+## `minimumReleaseAge` quietly picks an older version — or aborts, when there is none
 
-With the quarantine on, asking for something published inside the window does
-not error. pnpm resolves the newest version old enough, installs it, and exits 0
-— nothing in the output says so, and only the lockfile shows it. So when a
-version is not the one you asked for, look at its publish date before looking at
-the code.
+With the quarantine on, what happens depends on whether some version old enough
+can satisfy the request.
+
+**There is one: no error.** Asking for something published inside the window
+does not fail. pnpm resolves the newest version old enough, installs it, and
+exits 0 — nothing in the output says so, and only the lockfile shows it. So when
+a version is not the one you asked for, look at its publish date before looking
+at the code.
 
 `minimumReleaseAgeStrict: true` is documented to make this fail instead. **In
 pnpm 10.34.1 it does not**: same request, same older build, exit 0.
 
+**There is none: it aborts** with `ERR_PNPM_NO_MATURE_MATCHING_VERSION`. The
+usual cause is an exact pin deep in the tree: `rollup` pins its
+`@rollup/rollup-*` binaries to its own exact version, so while that version is
+inside the window there is nothing older to fall back to. **And pnpm revalidates
+the whole graph, not only what you asked for**: updating an unrelated package
+fails on it too, every time, until the pinned version comes of age. The error
+names the package and suggests `minimumReleaseAgeExclude`.
+
+**`install --frozen-lockfile` is not affected in 10.34.1**: an install that only
+reads the lockfile passes with entries younger than the window. pnpm 11
+documents a pass that re-applies the window to every lockfile entry
+(`trustLockfile: false`), so that changes on upgrade — documented, not measured.
+
 _Trigger: pnpm with `minimumReleaseAge`. Measured on 2026-09-17 with pnpm
 10.34.1: `typescript@next`, published 14 hours earlier, resolved to the build
-from eight days before, exit 0 — with and without the strict setting._
+from eight days before, exit 0 — with and without the strict setting. Measured
+on 2026-10-20 with pnpm 10.34.1: `pnpm --filter <pkg> update <dep>`, for three
+unrelated dependencies, aborted on `@rollup/rollup-linux-loong64-musl@4.64.7`
+(five days old, reached through vitest → vite → rollup);
+`install --frozen-lockfile` on that same lockfile, exit 0._
 
 ## A `CLAUDE.md` you did not write hides the `AGENTS.md` you did
 
