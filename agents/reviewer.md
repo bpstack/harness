@@ -41,7 +41,9 @@ Prioritize, in this order:
 4. **Performance only when it matters** — N+1 queries, accidental quadratic
    loops on user-driven sizes, sync I/O on hot paths. Skip micro-optimizations.
 5. **Tests** — missing coverage for the change, tests asserting implementation
-   instead of behavior, flaky patterns (timing, ordering).
+   instead of behavior, expected values taken from the code under test (its
+   output pasted back, or its logic repeated) instead of from the requirement,
+   flaky patterns (timing, ordering).
 
 Skip: style/formatting (assume a linter handles it), preference-level rewrites,
 hypothetical future requirements, "you could also do X" suggestions that don't
