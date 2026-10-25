@@ -71,6 +71,16 @@ pnpm run sync:global --dest ~              # what it would write
 pnpm run sync:global --dest ~ --apply
 ```
 
+```powershell
+pnpm run sync:global --dest $HOME          # PowerShell: `~` is not expanded
+pnpm run sync:global --dest $HOME --apply
+```
+
+🔴 **In PowerShell, `~` reaches the script as a literal `~`**: PowerShell does
+not expand it for a native command. It would resolve to a folder named `~` under
+the current directory, so `sync:global` refuses it, and refuses any `--dest`
+inside this clone, before writing anything.
+
 ⚠️ **`--dest` is your home, not `~/.claude`.** The paths below are written
 **under** it — `.claude/agents/`, `.claude/commands/`, `.claude/reference/` and
 the seal at `.claude/harness/install.json`, which is what `/init-project` reads

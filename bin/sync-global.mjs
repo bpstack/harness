@@ -25,7 +25,7 @@ import {
   existsSync,
   statSync,
 } from 'node:fs';
-import { join, dirname, resolve, relative, sep } from 'node:path';
+import { join, dirname, resolve, relative, sep, isAbsolute } from 'node:path';
 import { homedir } from 'node:os';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -323,6 +323,30 @@ export function parseArgs(argv) {
   };
 }
 
+// 🔴 A destination that can only be a mistake, refused before the plan. A `~`
+// that reaches this script is one no shell expanded — PowerShell passes it to
+// a native command as it is — and it resolves to a folder named `~` under the
+// current directory. Measured on 2026-10-25: 41 files written inside this
+// clone, and the real home kept the old copy. Inside the clone is refused for
+// the same reason: whatever was meant, it was not that.
+export function destProblem(dest, repo) {
+  if (/^~(?:$|[\\/])/.test(dest)) {
+    return (
+      `--dest ${dest}: no shell expanded it, so it would be a folder named ` +
+      '`~` here, not your home. In PowerShell write `--dest $HOME`; bash and ' +
+      'zsh expand `~` themselves.'
+    );
+  }
+  const inside = relative(repo, resolve(dest));
+  if (!inside.startsWith('..') && !isAbsolute(inside)) {
+    return (
+      `--dest ${dest} is inside this clone: the harness would be deployed ` +
+      'into its own source.'
+    );
+  }
+  return null;
+}
+
 // opencode counts as installed when its own directory exists.
 const hasOpencode = (dest) =>
   existsSync(join(dest, ...OPENCODE_HOME.split('/')));
@@ -570,6 +594,12 @@ if (process.argv[1] && process.argv[1].endsWith('sync-global.mjs')) {
         'destination means the last to run wins, silently. `--check` reads\n' +
         'only, so it defaults to your home.',
     );
+    process.exit(2);
+  }
+
+  const problem = destProblem(home, REPO);
+  if (problem) {
+    console.log(problem);
     process.exit(2);
   }
 

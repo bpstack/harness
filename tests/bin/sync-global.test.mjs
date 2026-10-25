@@ -8,6 +8,7 @@ import {
   planSync,
   render,
   parseArgs,
+  destProblem,
   driftNotice,
   foreignNotice,
   unmanagedMemory,
@@ -204,6 +205,39 @@ test('the command refuses without --dest, and says why', () => {
     assert.equal(error.status, 2);
     assert.match(String(error.stdout), /--dest is required/);
   }
+});
+
+test('a --dest the shell did not expand is refused, and says why', () => {
+  for (const dest of ['~', '~/', '~\\x', '~/.claude']) {
+    assert.match(destProblem(dest, REPO), /no shell expanded it/);
+  }
+  assert.equal(destProblem('/x', REPO), null);
+  assert.equal(destProblem(join(REPO, '..', 'a~b'), REPO), null);
+});
+
+test('a --dest inside this clone is refused', () => {
+  assert.match(destProblem(REPO, REPO), /inside this clone/);
+  assert.match(destProblem(join(REPO, 'x'), REPO), /inside this clone/);
+  assert.equal(destProblem(join(REPO, '..', 'elsewhere'), REPO), null);
+});
+
+// 🔴 Measured on 2026-10-25: `--dest ~` from PowerShell reached the script as
+// a literal `~`, and `--apply` wrote 41 files into a folder named `~` inside
+// the clone while the real home kept the old copy.
+test('the command refuses an unexpanded ~ before writing anything', () => {
+  const cwd = mkdtempSync(join(tmpdir(), 'sync-tilde-'));
+  try {
+    execFileSync(
+      process.execPath,
+      [join(REPO, 'bin', 'sync-global.mjs'), '--dest', '~', '--apply'],
+      { cwd, encoding: 'utf8' },
+    );
+    assert.fail('it should have exited non-zero');
+  } catch (error) {
+    assert.equal(error.status, 2);
+    assert.match(String(error.stdout), /\$HOME/);
+  }
+  assert.deepEqual(readdirSync(cwd), []);
 });
 
 // --- verbatim trees: recursive, and byte for byte ---
