@@ -684,7 +684,7 @@
 
 ## ADR-034 — The licence exception lives beside `LICENSE`, not inside it
 
-- **Status:** 🔶 proposed (2026-09-21)
+- **Status:** ✅ accepted (2026-11-11; proposed 2026-09-21)
 - **Decision:** `LICENSE` carries the MIT text and nothing else. The
   `reference/security/` exception moves to `LICENSE-EXCEPTIONS.md`. Which files
   are under which licence does not change.
@@ -743,7 +743,7 @@
 
 ## ADR-036 — Rule 8 stays exceptionable by the owner, after the agent asks; `layer1.md` is unchanged
 
-- **Status:** 🔶 proposed (2026-10-19)
+- **Status:** ✅ accepted (2026-11-11; proposed 2026-10-19)
 - **Decision:** When a project's `CLAUDE.md` carries its own commit-message rule
   (another language, free format, no Conventional Commits), `/init-project`
   keeps it as a declared exception to rule 8, with its reason and scope, **after
@@ -764,7 +764,7 @@
 
 ## ADR-037 — The no-Node check is a text rule in the commands, not a hook
 
-- **Status:** 🔶 proposed (2026-10-19)
+- **Status:** ✅ accepted (2026-11-11; proposed 2026-10-19)
 - **Decision:** `commands/init-project.md` and `commands/propagate.md` open with
   a Step 0 that runs `node -v` and, if it fails, stops with a fixed sentence and
   writes nothing: no later step, no `pnpm` or `npx` in its place, no file by
@@ -787,7 +787,7 @@
 
 ## ADR-038 — `commit-all` runs on Haiku in Claude Code; opencode keeps the session's model
 
-- **Status:** 🔶 proposed (2026-10-19)
+- **Status:** ✅ accepted (2026-11-11; proposed 2026-10-19)
 - **Decision:** A source may declare `model: fast`, a tier and never a model id.
   Claude Code gets `model: haiku`, an alias that follows the latest Haiku.
   opencode gets no model — the command runs on the session's, as before — and
@@ -824,7 +824,7 @@
 
 ## ADR-039 — In opencode the subagents are an allow-list, Context7 included, and only V2 is written
 
-- **Status:** 🔶 proposed (2026-11-11)
+- **Status:** ✅ accepted (2026-11-11)
 - **Decision:** The four subagents are written in opencode's native V2 format:
   `permissions` opens with a deny-all and then allows only what the source lists
   — `read`, `grep`, `glob`, the `bash-allow` commands, and the MCP servers named
