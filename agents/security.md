@@ -13,6 +13,8 @@ bash-allow:
   - git show *
   - git blame *
   - git ls-files *
+mcp:
+  - context7
 ---
 
 You are a pragmatic security reviewer. You never modify files. Your job is to

@@ -12,6 +12,8 @@ bash-allow:
   - cat *
   - ls *
   - find * -name *
+mcp:
+  - context7
 ---
 
 You are a pragmatic software architect. You never write or modify code. Your job

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
@@ -84,30 +84,171 @@ test('the lost bash allow-list is warned about, loudly', () => {
   assert.doesNotMatch(content, /git status/);
 });
 
-test('opencode gets the allow-list, denying everything else first', () => {
-  const { front, body } = parseSource(SOURCE);
-  const { content } = forOpencode(front, body);
-  assert.match(content, /mode: subagent/);
-  assert.match(content, /temperature: 0\.2/);
-  assert.match(content, /edit: deny/);
-  const denyAt = content.indexOf("'*': deny");
-  const allowAt = content.indexOf("'git status \\*': allow");
-  assert.ok(denyAt > -1, 'the catch-all deny is missing');
-  assert.ok(content.includes("'git status *': allow"));
-  assert.ok(denyAt < content.indexOf("'git status *': allow"));
+// --- opencode permissions, resolved the way OpenCode V2 resolves them ---
+//
+// The expected values come from the requirement — a read-only agent reads,
+// searches, runs its listed commands and asks Context7, and nothing else — and
+// from V2's documented rule: the **last matching rule wins**, `*` matches any
+// run of characters, `/` included. Not from `forOpencode`.
+
+const HOME = '/home/u';
+const list = (v) => (Array.isArray(v) ? v : []);
+
+const rulesOf = (content) =>
+  content
+    .split('\n---\n')[0]
+    .split('\n')
+    .filter((l) => l.startsWith('  - {'))
+    .map((l) => JSON.parse(l.slice(4)));
+
+const matches = (pattern, value) =>
+  new RegExp(
+    `^${pattern
+      .replace(/[.+^${}()|[\]\\]/g, '\\$&')
+      .replaceAll('*', '.*')
+      .replaceAll('?', '.')}$`,
+    'i',
+  ).test(value);
+
+const expand = (r) =>
+  ['read', 'edit', 'external_directory'].includes(r.action)
+    ? r.resource.replace(/^~(?=\/)/, HOME)
+    : r.resource;
+
+const resolve = (rules, action, resource) =>
+  rules.reduce(
+    (effect, r) =>
+      matches(r.action, action) && matches(expand(r), resource)
+        ? r.effect
+        : effect,
+    'allow',
+  );
+
+// What every agent gets before its own rules and after them, measured with
+// `opencode debug agents` on 2026-11-11 (2.1.3 and 2.2.5 alike).
+const BEFORE = [
+  { action: '*', resource: '*', effect: 'allow' },
+  { action: 'read', resource: '*.env', effect: 'ask' },
+  { action: 'read', resource: '*.env.*', effect: 'ask' },
+  { action: 'read', resource: '*.env.example', effect: 'allow' },
+  { action: 'external_directory', resource: '*', effect: 'ask' },
+  {
+    action: 'external_directory',
+    resource: `${HOME}/.claude/reference/*`,
+    effect: 'allow',
+  },
+];
+const AFTER = [{ action: 'browser', resource: '*', effect: 'deny' }];
+
+const PROBES = [
+  ['experimental_image_generate', '*', 'deny'],
+  ['playwright_browser_navigate', '*', 'deny'],
+  ['webfetch', 'https://example.com', 'deny'],
+  ['websearch', 'query', 'deny'],
+  ['skill', 'caveman', 'deny'],
+  ['question', '*', 'deny'],
+  ['execute', '*', 'deny'],
+  ['subagent', 'general', 'deny'],
+  // The property that matters: an action nobody has invented yet.
+  ['some_future_plugin_tool', '*', 'deny'],
+  ['edit', 'src/a.js', 'deny'],
+  ['shell', 'rm -rf x', 'deny'],
+  ['read', 'src/a.js', 'allow'],
+  ['grep', 'TODO', 'allow'],
+  ['glob', '**/*.js', 'allow'],
+  ['context7_query-docs', '*', 'allow'],
+  ['read', '.env', 'ask'],
+  ['read', 'config/.env.local', 'ask'],
+  ['read', '.env.example', 'allow'],
+  ['external_directory', `${HOME}/.claude/reference/security/*`, 'allow'],
+  ['external_directory', '/elsewhere/x/*', 'ask'],
+];
+
+const deployed = (file) => {
+  const raw = readFileSync(join(REPO, 'agents', file), 'utf8');
+  const { front, body } = parseSource(raw, file);
+  return { front, rules: rulesOf(forOpencode(front, body, file).content) };
+};
+
+for (const file of readdirSync(join(REPO, 'agents'))) {
+  test(`🔴 opencode resolves ${file} to read-only plus Context7`, () => {
+    const { front, rules } = deployed(file);
+    const all = [...BEFORE, ...rules, ...AFTER];
+    for (const [action, resource, want] of PROBES) {
+      assert.equal(
+        resolve(all, action, resource),
+        want,
+        `${file}: ${action} ${resource}`,
+      );
+    }
+    // Every command the source lists still runs.
+    for (const pattern of list(front['bash-allow'])) {
+      const command = pattern.replaceAll('*', 'x');
+      assert.equal(resolve(all, 'shell', command), 'allow', command);
+    }
+  });
+}
+
+// 🔴 The control: the same probes over the rules this harness produced until
+// 2026-11-11 (V1 frontmatter, as V2 translated it, measured on `reviewer`).
+// Had the evaluator been blind, this would pass the old rules too.
+test('the old deny-list fails the same probes', () => {
+  const old = [
+    ...BEFORE,
+    { action: 'edit', resource: '*', effect: 'deny' },
+    { action: 'shell', resource: '*', effect: 'deny' },
+    { action: 'shell', resource: 'git diff *', effect: 'allow' },
+    ...AFTER,
+  ];
+  assert.equal(resolve(old, 'experimental_image_generate', '*'), 'allow');
+  assert.equal(resolve(old, 'playwright_browser_navigate', '*'), 'allow');
+  assert.equal(resolve(old, 'some_future_plugin_tool', '*'), 'allow');
 });
 
-// ⚠️ Kept, because V1 applies it; announced, because V2 moves it under
-// `request.body` and does not send that yet. A value that changes nothing must
-// not look as if it did.
+test('opencode agents are written in the V2 format', () => {
+  const { front, body } = parseSource(SOURCE);
+  const head = forOpencode(front, body).content.split('\n---\n')[0];
+  assert.match(head, /\nmode: subagent\n/);
+  assert.match(head, /\npermissions:\n/);
+  // V1 keys would make V2 read the file as V1 again.
+  assert.doesNotMatch(head, /\n(permission|temperature|name):/);
+});
+
+// ⚠️ Written where V2 keeps it; announced, because V2 does not send `request`
+// to the model yet. A value that changes nothing must not look as if it did.
 test('the temperature opencode V2 does not apply is warned about', () => {
   const { front, body } = parseSource(SOURCE);
   const { content, warnings } = forOpencode(front, body);
-  assert.match(content, /temperature: 0\.2/, 'V1 still needs it written');
+  assert.match(content, /\nrequest: \{"body":\{"temperature":0\.2\}\}\n/);
   assert.equal(warnings.length, 1);
   assert.match(warnings[0], /^reviewer: `temperature: 0\.2` is not applied/);
   assert.match(warnings[0], /opencode V2/);
-  assert.match(warnings[0], /V1 applies it/);
+});
+
+test('a temperature that is not a number is refused', () => {
+  const front = {
+    name: 'a',
+    description: 'd',
+    kind: 'agent',
+    temperature: 'x',
+  };
+  assert.throws(() => forOpencode(front, 'b'), /temperature "x"/);
+});
+
+test('an MCP server reaches both dialects, and a bad name is refused', () => {
+  const front = {
+    name: 'a',
+    description: 'd',
+    kind: 'agent',
+    tools: 'read',
+    mcp: ['context7'],
+  };
+  assert.match(forClaude(front, 'b').content, /tools: Read, mcp__context7__\*/);
+  const rules = rulesOf(forOpencode(front, 'b').content);
+  assert.equal(resolve(rules, 'context7_resolve-library-id', '*'), 'allow');
+  front.mcp = ['context7__*'];
+  assert.throws(() => forClaude(front, 'b'), /mcp server/);
+  assert.throws(() => forOpencode(front, 'b'), /mcp server/);
 });
 
 test('without a temperature, opencode has nothing to warn about', () => {
@@ -119,19 +260,30 @@ test('without a temperature, opencode has nothing to warn about', () => {
 
 // 🔴 The bug this encodes: omitting the block when there is no bash left bash
 // ALLOWED — the opposite of what the source declares.
-test('no bash in the source means bash is explicitly denied', () => {
+test('no bash in the source means bash is denied', () => {
   const front = { name: 'a', description: 'd', kind: 'agent', tools: 'read' };
-  assert.match(forOpencode(front, 'b').content, /'\*': deny/);
+  const rules = rulesOf(forOpencode(front, 'b').content);
+  assert.equal(resolve(rules, 'shell', 'ls'), 'deny');
 });
 
-test('a tool that writes flips edit to allow', () => {
+test('bash with no allow-list runs anything', () => {
+  const front = { name: 'a', description: 'd', kind: 'agent', tools: 'bash' };
+  const rules = rulesOf(forOpencode(front, 'b').content);
+  assert.equal(resolve(rules, 'shell', 'rm -rf x'), 'allow');
+});
+
+test('a tool that writes allows edit, and only then', () => {
   const front = {
     name: 'a',
     description: 'd',
     kind: 'agent',
     tools: 'read, write',
   };
-  assert.match(forOpencode(front, 'b').content, /edit: allow/);
+  const rules = rulesOf(forOpencode(front, 'b').content);
+  assert.equal(resolve(rules, 'edit', 'src/a.js'), 'allow');
+  front.tools = 'read';
+  const readOnly = rulesOf(forOpencode(front, 'b').content);
+  assert.equal(resolve(readOnly, 'edit', 'src/a.js'), 'deny');
 });
 
 test('a command is not an agent — no subagent mode, no permissions', () => {

@@ -19,6 +19,8 @@ bash-allow:
   - git stash list
   - cat *
   - ls *
+mcp:
+  - context7
 ---
 
 You are a test runner and failure analyst. You never modify files. Your job is

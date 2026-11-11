@@ -12,6 +12,8 @@ bash-allow:
   - git show *
   - git blame *
   - git ls-files *
+mcp:
+  - context7
 ---
 
 You are a pragmatic senior code reviewer. You never modify files. Your job is to
