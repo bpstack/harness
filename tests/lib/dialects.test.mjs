@@ -336,7 +336,8 @@ test('a value that starts on its key line and wraps is joined too', () => {
 // A command that runs as a subtask says so, or it runs in the main session and
 // spends its context. It is declared in the source and easy to drop on the way
 // out — which is exactly what happened the first time.
-test('subtask survives into the opencode dialect', () => {
+// V2 spells it `subagent` and keeps `subtask` only as a deprecated alias.
+test('subtask survives into the opencode dialect, as subagent', () => {
   const front = {
     name: 'c',
     description: 'd',
@@ -344,12 +345,20 @@ test('subtask survives into the opencode dialect', () => {
     subtask: 'true',
     tools: 'read',
   };
-  assert.match(forOpencode(front, 'b').content, /subtask: true/);
+  const { content } = forOpencode(front, 'b');
+  assert.match(content, /\nsubagent: true\n/);
+  assert.doesNotMatch(content, /subtask/);
 });
 
 test('a command that is not a subtask does not claim to be one', () => {
   const front = { name: 'c', description: 'd', kind: 'command', tools: 'read' };
-  assert.doesNotMatch(forOpencode(front, 'b').content, /subtask/);
+  assert.doesNotMatch(forOpencode(front, 'b').content, /subtask|subagent/);
+});
+
+// OpenCode V2 names commands after their file, as it does agents.
+test('an opencode command carries no name key', () => {
+  const front = { name: 'c', description: 'd', kind: 'command', tools: 'read' };
+  assert.doesNotMatch(forOpencode(front, 'b').content, /\nname:/);
 });
 
 // 🔴 Agents and commands are not the same shape in Claude Code: an agent
