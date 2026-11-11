@@ -210,6 +210,10 @@ them match:
   instead.
 - **Commands in opencode**: a command takes the permissions of the agent it
   names (`agent: build`); it declares none of its own.
+- **Beyond the shell, the two match**: the four subagents get only what their
+  source lists — read, search, their commands and Context7 — and nothing else:
+  no web, no other MCP server, no image generation. In opencode that takes
+  **V2**: on V1 the subagents run unrestricted.
 
 Anything that changes `lib/dialects.mjs` or the frontmatter of `agents/` and
 `commands/` can move this table — check it again.

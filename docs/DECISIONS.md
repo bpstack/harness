@@ -388,6 +388,9 @@
 ## ADR-021 — The installer deploys `reference/` whole and never writes tool configuration
 
 - **Status:** ✅ accepted
+- **Revised by:** ADR-039 — the subagents reach `reference/` through a rule in
+  their own frontmatter; the installer's warning now covers the commands, which
+  still depend on `opencode.json`.
 - **Date:** 2026-09-15
 - **Decision:** The global installer writes only into the folders it creates:
   `~/.claude/{agents,commands,reference}` and
@@ -497,6 +500,9 @@
 ## ADR-026 — The harness supports both Claude Code and opencode, with their differences declared
 
 - **Status:** ✅ accepted
+- **Revised by:** ADR-039 — in opencode the subagents are an allow-list of
+  everything, not only of the shell, and each carries its own rule for
+  `reference/`. Opencode V1 is no longer written.
 - **Date:** 2026-09-17
 - **Decision:** The harness serves **both Claude Code and opencode**; it does
   not choose one. Commands are generated in two dialects from one source so the
@@ -815,6 +821,40 @@
   outside the harness (ADR-037). _Decision of the owner, 2026-10-19._
 - **Source:** <https://code.claude.com/docs/en/slash-commands> and
   <https://opencode.ai/v2/docs/commands>, read 2026-10-19.
+
+## ADR-039 — In opencode the subagents are an allow-list, Context7 included, and only V2 is written
+
+- **Status:** 🔶 proposed (2026-11-11)
+- **Decision:** The four subagents are written in opencode's native V2 format:
+  `permissions` opens with a deny-all and then allows only what the source lists
+  — `read`, `grep`, `glob`, the `bash-allow` commands, and the MCP servers named
+  in a new `mcp:` field. Because the deny-all wipes out the rules that come
+  before it, each agent repeats opencode's `.env` ask rules after its read
+  allow, and its own `external_directory` rules for `~/.claude/reference/`. The
+  four grant `context7`: `mcp__context7__*` in Claude Code, `context7_*` in
+  opencode. Commands spell the flag `subagent`, and neither agents nor commands
+  carry `name`, which V2 does not have. Temperature goes under `request.body`.
+  Opencode V1 is no longer written.
+- **Reason:** Measured 2026-11-11 with `opencode debug agents` on 2.1.3 and
+  2.2.5: the V1 frontmatter denied only `edit` and the shell over a base that
+  allows everything, so the read-only subagents could still drive Playwright,
+  fetch the web, load skills and — since 2.2.2 — generate images, which writes a
+  file and spends credit. Claude Code's `tools:` was already an allow-list; the
+  two now match. Context7 is granted in both because rule 17 sends every agent
+  to it, and the subagents had it in neither. Measured in execution the same day
+  on 2.2.5: `reviewer` had no `webfetch` at all, Context7 answered, `ls` was
+  denied; a command with `subagent: true` ran in a child session. All three
+  machines run V2.
+- **Rejected:** denying image generation in `opencode.json`, because the owner
+  uses it from the main agent; denying the known actions one by one, which
+  leaves open every action opencode adds later — image generation arrived that
+  way; keeping V1 with a catch-all deny, since V2 translates V1 only as a
+  deprecated path, and a translation that stops leaves the agent unrestricted
+  without a word. _Decision of the owner, 2026-11-11._
+- **Source:** <https://opencode.ai/v2/docs/permissions>,
+  <https://opencode.ai/v2/docs/agents>, <https://opencode.ai/v2/docs/commands>
+  and <https://code.claude.com/docs/en/sub-agents>, read 2026-11-11; opencode's
+  `packages/core/src/config/plugin/agent.ts` at `v2.2.5`.
 
 <!-- Guidance, copied from the harness's DECISIONS template when this file
      was created. **Nothing rewrites it**: it is not a managed block, so

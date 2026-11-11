@@ -109,9 +109,11 @@ export function foreignNotice(foreign, folder) {
 }
 
 // 🔴 The shared reference goes to `.claude/reference/` whichever tool asked for
-// it, and the `security` agent's prompt carries that path written in. Whether
-// opencode lets an agent read there depends on its version, and the two answer
-// differently with no rule at all:
+// it, and the commands that read it — `init-project`, `propagate`,
+// `write-docs` — run as `build`, under this config's rules. The four subagents
+// carry their own rule for it since ADR-039. Whether opencode lets `build` read
+// there depends on its version, and the two answer differently with no rule at
+// all:
 //
 // - **V1**, `permission.external_directory`: an object of pattern → verdict,
 //   or one verdict for every path. Unset, it **asks**, so the subagent stops
@@ -139,9 +141,8 @@ export function foreignNotice(foreign, folder) {
 export function opencodePermission(config, home) {
   if (config === null) return null; // no opencode here: nothing to say
   const why =
-    'The `security` agent is told to cite the ASVS sheet from there, so ' +
-    'without it that agent stops to ask mid-review — or reviews without the ' +
-    'sheet and says so.';
+    'The commands `init-project`, `propagate` and `write-docs` read from ' +
+    'there as `build`, so without it they stop to ask mid-run.';
   const v1Rule =
     '`"permission": { "external_directory": { "~/.claude/reference/**": ' +
     '"allow" } }`';
